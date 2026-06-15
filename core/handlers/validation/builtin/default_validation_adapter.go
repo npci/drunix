@@ -1,0 +1,166 @@
+/*
+Copyright IBM Corp. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+Modifications Copyright National Payments Corporation of India
+*/
+package builtin
+
+import (
+	"github.com/hyperledger/fabric-protos-go/common"
+	commonerrors "github.com/npci/drunix/common/errors"
+	"github.com/npci/drunix/core/committer/txvalidator/v20/plugindispatcher"
+	validation "github.com/npci/drunix/core/handlers/validation/api"
+	vc "github.com/npci/drunix/core/handlers/validation/api/capabilities"
+	vi "github.com/npci/drunix/core/handlers/validation/api/identities"
+	vp "github.com/npci/drunix/core/handlers/validation/api/policies"
+	vs "github.com/npci/drunix/core/handlers/validation/api/state"
+	v20 "github.com/npci/drunix/core/handlers/validation/builtin/v20"
+	"github.com/pkg/errors"
+)
+
+type DefaultValidationFactoryAdapter struct{}
+
+func (*DefaultValidationFactoryAdapter) New() validation.PluginAdapter {
+	return &DefaultValidationAdapter{}
+}
+
+type DefaultValidationAdapter struct {
+	Capabilities vc.Capabilities
+	// TxValidatorV1_2 TransactionValidator
+	// TxValidatorV1_3 TransactionValidator
+	TxValidatorV2_0 TransactionValidatorAdapter
+}
+
+//go:generate mockery -dir . -name TransactionValidator -case underscore -output mocks/
+type TransactionValidatorAdapter interface {
+	Validate(blockNum uint64, envelope *common.Envelope, namespace string, txPosition int, actionPosition int, policy []byte) commonerrors.TxValidationError
+	ValidateLtx(blockNum uint64, envelope *common.Envelope, namespace string, txPosition int, actionPosition int, policy []byte) commonerrors.TxValidationError
+}
+
+func (v *DefaultValidationAdapter) Validate(blockNum uint64, envelope *common.Envelope, namespace string, txPosition int, actionPosition int, contextData ...validation.ContextDatum) error {
+	if len(contextData) == 0 {
+		logger.Panicf("Expected to receive policy bytes in context data")
+	}
+
+	serializedPolicy, isSerializedPolicy := contextData[0].(vp.SerializedPolicy)
+	if !isSerializedPolicy {
+		logger.Panicf("Expected to receive a serialized policy in the first context data")
+	}
+	// if block == nil || block.Data == nil {
+	// 	return errors.New("empty block")
+	// }
+	// if txPosition >= len(block.Data.Data) {
+	// 	return errors.Errorf("block has only %d transactions, but requested tx at position %d", len(block.Data.Data), txPosition)
+	// }
+	// if block.Header == nil {
+	// 	return errors.Errorf("no block header")
+	// }
+
+	var err error
+	switch {
+	case v.Capabilities.V2_0Validation():
+		err = v.TxValidatorV2_0.Validate(blockNum, envelope, namespace, txPosition, actionPosition, serializedPolicy.Bytes())
+
+	// case v.Capabilities.V1_3Validation():
+	// 	err = v.TxValidatorV1_3.Validate(block, namespace, txPosition, actionPosition, serializedPolicy.Bytes())
+
+	// case v.Capabilities.V1_2Validation():
+	// 	fallthrough
+
+	default:
+		// err = v.TxValidatorV1_2.Validate(block, namespace, txPosition, actionPosition, serializedPolicy.Bytes())
+		err = errors.New("Not supported validation capability by VSCC")
+	}
+
+	logger.Debugf("block %d, namespace: %s, tx %d validation results is: %v", blockNum, namespace, txPosition, err)
+	return convertErrorTypeOrPanic(err)
+}
+
+func (v *DefaultValidationAdapter) ValidateLtx(blockNum uint64, envelope *common.Envelope, namespace string, txPosition int, actionPosition int, contextData ...validation.ContextDatum) error {
+	if len(contextData) == 0 {
+		logger.Panicf("Expected to receive policy bytes in context data")
+	}
+
+	serializedPolicy, isSerializedPolicy := contextData[0].(vp.SerializedPolicy)
+	if !isSerializedPolicy {
+		logger.Panicf("Expected to receive a serialized policy in the first context data")
+	}
+	// if block == nil || block.Data == nil {
+	// 	return errors.New("empty block")
+	// }
+	// if txPosition >= len(block.Data.Data) {
+	// 	return errors.Errorf("block has only %d transactions, but requested tx at position %d", len(block.Data.Data), txPosition)
+	// }
+	// if block.Header == nil {
+	// 	return errors.Errorf("no block header")
+	// }
+
+	var err error
+	switch {
+	case v.Capabilities.V2_0Validation():
+		err = v.TxValidatorV2_0.ValidateLtx(blockNum, envelope, namespace, txPosition, actionPosition, serializedPolicy.Bytes())
+
+	// case v.Capabilities.V1_3Validation():
+	// 	err = v.TxValidatorV1_3.Validate(block, namespace, txPosition, actionPosition, serializedPolicy.Bytes())
+
+	// case v.Capabilities.V1_2Validation():
+	// 	fallthrough
+
+	default:
+		// err = v.TxValidatorV1_2.Validate(block, namespace, txPosition, actionPosition, serializedPolicy.Bytes())
+		err = errors.New("Not supported validation capability by VSCC")
+	}
+
+	logger.Debugf("block %d, namespace: %s, tx %d validation results is: %v", blockNum, namespace, txPosition, err)
+	return convertErrorTypeOrPanic(err)
+}
+
+func (v *DefaultValidationAdapter) Init(dependencies ...validation.Dependency) error {
+	var (
+		d   vi.IdentityDeserializer
+		c   vc.Capabilities
+		sf  vs.StateFetcher
+		pe  vp.PolicyEvaluator
+		cor plugindispatcher.CollectionResources
+	)
+	for _, dep := range dependencies {
+		if deserializer, isIdentityDeserializer := dep.(vi.IdentityDeserializer); isIdentityDeserializer {
+			d = deserializer
+		}
+		if capabilities, isCapabilities := dep.(vc.Capabilities); isCapabilities {
+			c = capabilities
+		}
+		if stateFetcher, isStateFetcher := dep.(vs.StateFetcher); isStateFetcher {
+			sf = stateFetcher
+		}
+		if policyEvaluator, isPolicyFetcher := dep.(vp.PolicyEvaluator); isPolicyFetcher {
+			pe = policyEvaluator
+		}
+		if collectionResources, isCollectionResources := dep.(plugindispatcher.CollectionResources); isCollectionResources {
+			cor = collectionResources
+		}
+	}
+	if sf == nil {
+		return errors.New("stateFetcher not passed in init")
+	}
+	if d == nil {
+		return errors.New("identityDeserializer not passed in init")
+	}
+	if c == nil {
+		return errors.New("capabilities not passed in init")
+	}
+	if pe == nil {
+		return errors.New("policy fetcher not passed in init")
+	}
+	if cor == nil {
+		return errors.New("collection resources not passed in init")
+	}
+
+	v.Capabilities = c
+	// v.TxValidatorV1_2 = v12.New(c, sf, d, pe)
+	// v.TxValidatorV1_3 = v13.New(c, sf, d, pe)
+	v.TxValidatorV2_0 = v20.NewAdapter(c, sf, d, pe, cor)
+
+	return nil
+}

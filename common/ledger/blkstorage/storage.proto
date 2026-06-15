@@ -1,0 +1,23 @@
+/*
+Copyright IBM Corp. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+option go_package = "github.com/npci/drunix/common/ledger/blkstorage";
+
+package msgs;
+
+message txIDIndexValue {
+    bytes blk_location = 1;
+    bytes tx_location = 2;
+    int32 tx_validation_code = 3;
+}
+
+message bootstrappingSnapshotInfo {
+    uint64 lastBlockNum = 1;
+    bytes lastBlockHash = 2;
+    bytes previousBlockHash = 3;
+}

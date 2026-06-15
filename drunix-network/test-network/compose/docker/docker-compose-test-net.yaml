@@ -1,0 +1,79 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+services:
+  peer0.org1.example.com:
+    container_name: lp1.org1
+    image: npcioss/drunix-peer:1.0.0
+    labels:
+      service: drunix
+    environment:
+      #Generic peer variables
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=drunix_test
+    volumes:
+      - ./docker/peercfg:/etc/hyperledger/peercfg
+      - ${DOCKER_SOCK}:/host/var/run/docker.sock
+  peer1.org1.example.com:
+    container_name: cp.org1
+    image: npcioss/drunix-peer:1.0.0
+    labels:
+      service: drunix
+    environment:
+      #Generic peer variables
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=drunix_test
+    volumes:
+      - ./docker/peercfg:/etc/hyperledger/peercfg
+      - ${DOCKER_SOCK}:/host/var/run/docker.sock
+  peer2.org1.example.com:
+    container_name: vs1.org1
+    image: npcioss/drunix-vscc:1.0.0
+    labels:
+      service: drunix
+    environment:
+      #Generic peer variables
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=drunix_test
+    volumes:
+      - ./docker/peercfg:/etc/hyperledger/peercfg
+      - ${DOCKER_SOCK}:/host/var/run/docker.sock
+
+  peer0.org2.example.com:
+    container_name: lp1.org2
+    image: npcioss/drunix-peer:1.0.0
+    labels:
+      service: drunix
+    environment:
+      #Generic peer variables
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=drunix_test
+    volumes:
+      - ./docker/peercfg:/etc/hyperledger/peercfg
+      - ${DOCKER_SOCK}:/host/var/run/docker.sock
+  peer1.org2.example.com:
+    container_name: cp.org2
+    image: npcioss/drunix-peer:1.0.0
+    labels:
+      service: drunix
+    environment:
+      #Generic peer variables
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=drunix_test
+    volumes:
+      - ./docker/peercfg:/etc/hyperledger/peercfg
+      - ${DOCKER_SOCK}:/host/var/run/docker.sock
+  peer2.org2.example.com:
+    container_name: vs1.org2
+    image: npcioss/drunix-vscc:1.0.0
+    labels:
+      service: drunix
+    environment:
+      #Generic peer variables
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=drunix_test
+    volumes:
+      - ./docker/peercfg:/etc/hyperledger/peercfg
+      - ${DOCKER_SOCK}:/host/var/run/docker.sock

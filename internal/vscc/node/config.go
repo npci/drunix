@@ -1,0 +1,123 @@
+/*
+Copyright National Payments Corporation of India. All Rights Reserved.
+ 
+SPDX-License-Identifier: Apache-2.0
+*/
+
+package node
+
+import (
+	"path/filepath"
+	"time"
+
+	coreconfig "github.com/npci/drunix/core/config"
+	"github.com/npci/drunix/core/ledger"
+	"github.com/spf13/viper"
+)
+
+func ledgerConfig() *ledger.Config {
+	// set defaults
+	internalQueryLimit := 1000
+	if viper.IsSet("ledger.state.couchDBConfig.internalQueryLimit") {
+		internalQueryLimit = viper.GetInt("ledger.state.couchDBConfig.internalQueryLimit")
+	}
+	maxBatchUpdateSize := 500
+	if viper.IsSet("ledger.state.couchDBConfig.maxBatchUpdateSize") {
+		maxBatchUpdateSize = viper.GetInt("ledger.state.couchDBConfig.maxBatchUpdateSize")
+	}
+	collElgProcMaxDbBatchSize := 5000
+	if viper.IsSet("ledger.pvtdataStore.collElgProcMaxDbBatchSize") {
+		collElgProcMaxDbBatchSize = viper.GetInt("ledger.pvtdataStore.collElgProcMaxDbBatchSize")
+	}
+	collElgProcDbBatchesInterval := 1000
+	if viper.IsSet("ledger.pvtdataStore.collElgProcDbBatchesInterval") {
+		collElgProcDbBatchesInterval = viper.GetInt("ledger.pvtdataStore.collElgProcDbBatchesInterval")
+	}
+	purgeInterval := 100
+	if viper.IsSet("ledger.pvtdataStore.purgeInterval") {
+		purgeInterval = viper.GetInt("ledger.pvtdataStore.purgeInterval")
+	}
+	deprioritizedDataReconcilerInterval := 60 * time.Minute
+	if viper.IsSet("ledger.pvtdataStore.deprioritizedDataReconcilerInterval") {
+		deprioritizedDataReconcilerInterval = viper.GetDuration("ledger.pvtdataStore.deprioritizedDataReconcilerInterval")
+	}
+	purgedKeyAuditLogging := true
+	if viper.IsSet("ledger.pvtdataStore.purgedKeyAuditLogging") {
+		purgedKeyAuditLogging = viper.GetBool("ledger.pvtdataStore.purgedKeyAuditLogging")
+	}
+
+	fsPath := coreconfig.GetPath("peer.fileSystemPath")
+	ledgersDataRootDir := filepath.Join(fsPath, "ledgersData")
+	snapshotsRootDir := viper.GetString("ledger.snapshots.rootDir")
+	if snapshotsRootDir == "" {
+		snapshotsRootDir = filepath.Join(fsPath, "snapshots")
+	}
+	conf := &ledger.Config{
+		RootFSPath: ledgersDataRootDir,
+		StateDBConfig: &ledger.StateDBConfig{
+			StateDatabase: viper.GetString("ledger.state.stateDatabase"),
+			CouchDB:       &ledger.CouchDBConfig{},
+		},
+		PrivateDataConfig: &ledger.PrivateDataConfig{
+			MaxBatchSize:                        collElgProcMaxDbBatchSize,
+			BatchesInterval:                     collElgProcDbBatchesInterval,
+			PurgeInterval:                       purgeInterval,
+			DeprioritizedDataReconcilerInterval: deprioritizedDataReconcilerInterval,
+			PurgedKeyAuditLogging:               purgedKeyAuditLogging,
+		},
+		HistoryDBConfig: &ledger.HistoryDBConfig{
+			Enabled: viper.GetBool("ledger.history.enableHistoryDatabase"),
+		},
+		SnapshotsConfig: &ledger.SnapshotsConfig{
+			RootDir: snapshotsRootDir,
+		},
+		// VsccConfig: &ledger.VsccConfig{
+		// ConfigTxChannelName:    viper.GetString("peer.vsccServer.configtxChannelName"),
+		// ConfigTxChannelTimeout: viper.GetDuration("peer.vsccServer.configtxChannelTimeout"),
+		// 	ValidatorPoolSize: cmp.Or(viper.GetInt("peer.validatorPoolSize"), runtime.NumCPU()),
+		// },
+	}
+
+	if conf.StateDBConfig.StateDatabase == ledger.CouchDB {
+		conf.StateDBConfig.CouchDB = &ledger.CouchDBConfig{
+			Address:               viper.GetString("ledger.state.couchDBConfig.couchDBAddress"),
+			Username:              viper.GetString("ledger.state.couchDBConfig.username"),
+			Password:              viper.GetString("ledger.state.couchDBConfig.password"),
+			MaxRetries:            viper.GetInt("ledger.state.couchDBConfig.maxRetries"),
+			MaxRetriesOnStartup:   viper.GetInt("ledger.state.couchDBConfig.maxRetriesOnStartup"),
+			RequestTimeout:        viper.GetDuration("ledger.state.couchDBConfig.requestTimeout"),
+			InternalQueryLimit:    internalQueryLimit,
+			MaxBatchUpdateSize:    maxBatchUpdateSize,
+			CreateGlobalChangesDB: viper.GetBool("ledger.state.couchDBConfig.createGlobalChangesDB"),
+			RedoLogPath:           filepath.Join(ledgersDataRootDir, "couchdbRedoLogs"),
+			UserCacheSizeMBs:      viper.GetInt("ledger.state.couchDBConfig.cacheSize"),
+		}
+	} else if conf.StateDBConfig.StateDatabase == ledger.SqlDB {
+
+		prepareStatment := true
+		if viper.IsSet("ledger.state.sqlDBConfig.prepareStatement") {
+			prepareStatment = viper.GetBool("ledger.state.sqlDBConfig.prepareStatement")
+		}
+
+		batchSize := 100
+		if viper.IsSet("ledger.state.sqlDBConfig.batchSize") {
+			batchSize = viper.GetInt("ledger.state.sqlDBConfig.batchSize")
+		}
+
+		conf.StateDBConfig.SqlDB = &ledger.SqlDbConfig{
+			PeerId:          viper.GetString("peer.id"),
+			Host:            viper.GetString("ledger.state.sqlDBConfig.address"),
+			Port:            viper.GetString("ledger.state.sqlDBConfig.port"),
+			User:            viper.GetString("ledger.state.sqlDBConfig.user"),
+			Password:        viper.GetString("ledger.state.sqlDBConfig.password"),
+			DBName:          viper.GetString("ledger.state.sqlDBConfig.dbname"),
+			Sslmode:         viper.GetString("ledger.state.sqlDBConfig.sslMode"),
+			PrepareStatment: prepareStatment,
+			Batchsize:       batchSize,
+			MaxIdleConns:    viper.GetInt("ledger.state.sqlDBConfig.maxIdleConns"),
+			MaxOpenConns:    viper.GetInt("ledger.state.sqlDBConfig.maxOpenConns"),
+			ConnMaxLifetime: viper.GetDuration("ledger.state.sqlDBConfig.connMaxLifetime"),
+		}
+	}
+	return conf
+}

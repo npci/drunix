@@ -1,0 +1,47 @@
+/*
+Copyright IBM Corp. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+option go_package = "github.com/npci/drunix/core/ledger/pvtdatastorage";
+
+package pvtdatastorage;
+
+message ExpiryData {
+	map<string, NamespaceExpiryData>  map = 1;
+}
+
+message NamespaceExpiryData {
+	// for pvt data, there would be an
+	// entry in TxNums
+	map<string, TxNums> presentData = 1;
+	// for any number of missing pvt data of a collection,
+	// there would be an entry in the map
+	map<string, bool> missingData = 2;
+	//entries for hashes for the pvtdata key-values (loaded from snapshot data)
+	map<string, TxNums> bootKVHashes = 3;
+}
+
+message BootKVHash {
+	bytes keyHash = 1;
+	bytes valueHash = 2;
+}
+
+message BootKVHashes {
+	repeated BootKVHash list = 1;
+}
+
+message TxNums {
+	repeated uint64 list = 1;
+}
+
+message CollElgInfo {
+	map<string, CollNames> nsCollMap = 1;
+}
+
+message CollNames {
+    repeated string entries = 1;
+}

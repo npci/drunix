@@ -1,0 +1,121 @@
+// Copyright the Hyperledger Fabric contributors. All rights reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+syntax = "proto3";
+
+option go_package = "github.com/hyperledger/fabric-protos-go/peer";
+option java_package = "org.hyperledger.fabric.protos.peer";
+option java_outer_classname = "ProposalResponsePackage";
+
+package protos;
+
+import "google/protobuf/timestamp.proto";
+import "common/policies.proto";
+
+// A ProposalResponse is returned from an endorser to the proposal submitter.
+// The idea is that this message contains the endorser's response to the
+// request of a client to perform an action over a chaincode (or more
+// generically on the ledger); the response might be success/error (conveyed in
+// the Response field) together with a description of the action and a
+// signature over it by that endorser.  If a sufficient number of distinct
+// endorsers agree on the same action and produce signature to that effect, a
+// transaction can be generated and sent for ordering.
+message ProposalResponse {
+    // Version indicates message protocol version
+    int32 version = 1;
+
+    // Timestamp is the time that the message
+    // was created as  defined by the sender
+    google.protobuf.Timestamp timestamp = 2;
+
+    // A response message indicating whether the
+    // endorsement of the action was successful
+    Response response = 4;
+
+    // The payload of response. It is the bytes of ProposalResponsePayload
+    bytes payload = 5;
+
+    // The endorsement of the proposal, basically
+    // the endorser's signature over the payload
+    Endorsement endorsement = 6;
+
+    // The chaincode interest derived from simulating the proposal.
+    ChaincodeInterest interest = 7;
+}
+
+// A response with a representation similar to an HTTP response that can
+// be used within another message.
+message Response {
+    // A status code that should follow the HTTP status codes.
+    int32 status = 1;
+
+    // A message associated with the response code.
+    string message = 2;
+
+    // A payload that can be used to include metadata with this response.
+    bytes payload = 3;
+}
+
+// ProposalResponsePayload is the payload of a proposal response.  This message
+// is the "bridge" between the client's request and the endorser's action in
+// response to that request. Concretely, for chaincodes, it contains a hashed
+// representation of the proposal (proposalHash) and a representation of the
+// chaincode state changes and events inside the extension field.
+message ProposalResponsePayload {
+    // Hash of the proposal that triggered this response. The hash is used to
+    // link a response with its proposal, both for bookeeping purposes on an
+    // asynchronous system and for security reasons (accountability,
+    // non-repudiation). The hash usually covers the entire Proposal message
+    // (byte-by-byte).
+    bytes proposal_hash = 1;
+
+    // Extension should be unmarshaled to a type-specific message. The type of
+    // the extension in any proposal response depends on the type of the proposal
+    // that the client selected when the proposal was initially sent out.  In
+    // particular, this information is stored in the type field of a Header.  For
+    // chaincode, it's a ChaincodeAction message
+    bytes extension = 2;
+}
+
+// An endorsement is a signature of an endorser over a proposal response.  By
+// producing an endorsement message, an endorser implicitly "approves" that
+// proposal response and the actions contained therein. When enough
+// endorsements have been collected, a transaction can be generated out of a
+// set of proposal responses.  Note that this message only contains an identity
+// and a signature but no signed payload. This is intentional because
+// endorsements are supposed to be collected in a transaction, and they are all
+// expected to endorse a single proposal response/action (many endorsements
+// over a single proposal response)
+message Endorsement {
+    // Identity of the endorser (e.g. its certificate)
+    bytes endorser = 1;
+
+    // Signature of the payload included in ProposalResponse concatenated with
+    // the endorser's certificate; ie, sign(ProposalResponse.payload + endorser)
+    bytes signature = 2;
+}
+
+// ChaincodeInterest defines an interest about an endorsement
+// for a specific single chaincode invocation.
+// Multiple chaincodes indicate chaincode to chaincode invocations.
+message ChaincodeInterest {
+    repeated ChaincodeCall chaincodes = 1;
+}
+
+// ChaincodeCall defines a call to a chaincode.
+// It may have collections that are related to the chaincode
+message ChaincodeCall {
+    string name = 1;
+    repeated string collection_names = 2;
+    bool no_private_reads = 3; // Indicates we do not need to read from private data
+    bool no_public_writes = 4; // Indicates we do not need to write to the chaincode namespace
+
+    // The set of signature policies associated with states in the write-set
+    // that have state-based endorsement policies.
+    repeated common.SignaturePolicyEnvelope key_policies = 5;
+
+    // Indicates we wish to ignore the namespace endorsement policy
+    bool disregard_namespace_policy = 6;
+}
+

@@ -1,0 +1,246 @@
+/*
+Copyright IBM Corp. 2017 All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+
+Modifications Copyright National Payments Corporation of India
+*/
+
+package server
+
+import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"runtime/debug"
+	"time"
+
+	"github.com/golang/protobuf/proto"
+	cb "github.com/hyperledger/fabric-protos-go/common"
+	ab "github.com/hyperledger/fabric-protos-go/orderer"
+	"github.com/npci/drunix/common/deliver"
+	"github.com/npci/drunix/common/metrics"
+	"github.com/npci/drunix/common/policies"
+	sparseblock "github.com/npci/drunix/common/sparseblocks"
+	"github.com/npci/drunix/orderer/common/broadcast"
+	localconfig "github.com/npci/drunix/orderer/common/localconfig"
+	"github.com/npci/drunix/orderer/common/msgprocessor"
+	"github.com/npci/drunix/orderer/common/multichannel"
+	"github.com/npci/drunix/protoutil"
+	"github.com/pkg/errors"
+)
+
+type broadcastSupport struct {
+	*multichannel.Registrar
+}
+
+func (bs broadcastSupport) BroadcastChannelSupport(msg *cb.Envelope) (*cb.ChannelHeader, bool, broadcast.ChannelSupport, error) {
+	return bs.Registrar.BroadcastChannelSupport(msg)
+}
+
+type deliverSupport struct {
+	// rc- we should remove this reference if the sparse block functionality cant be switched off
+	ordererRegistrar *multichannel.Registrar
+	/*
+		DRUNIX:: Added sparseRegistrar for the orgChains
+	*/
+	sparseRegistrar *sparseblock.OrgChainsRegistrar
+}
+
+// newDeliverSupport initializes and returns a deliverSupport instance
+func newDeliverSupport(r *multichannel.Registrar, fileLedgerConf localconfig.FileLedger, mvccApplicable bool) deliverSupport {
+	//a function that sets the org block handling
+	/*
+		DRUNIX::
+		Create OrgChainsRegistrar for org-specific block handling
+		Initialize sparse chains
+	*/
+	ocRegistrar := sparseblock.NewOrgChainsRegistrar(r, fileLedgerConf, mvccApplicable)
+	ocRegistrar.InitializeSparseChains()
+
+	return deliverSupport{r, ocRegistrar}
+}
+
+func (ds deliverSupport) GetChain(chainID string, mspID string) deliver.Chain {
+	/*
+		DRUNIX:: return chain based on mspID
+	*/
+
+	var chain deliver.Chain
+	if mspID != "" {
+		// If mspID is provided, get the chain from sparseRegistrar
+		chain = ds.sparseRegistrar.GetChain(chainID, mspID)
+	} else {
+		// If mspID is not provided, get the chain from ordererRegistrar
+		chain = ds.ordererRegistrar.GetChain(chainID)
+	}
+
+	return chain
+}
+
+type server struct {
+	bh    *broadcast.Handler
+	dh    *deliver.Handler
+	debug *localconfig.Debug
+	*multichannel.Registrar
+}
+
+type responseSender struct {
+	ab.AtomicBroadcast_DeliverServer
+}
+
+func (rs *responseSender) SendStatusResponse(status cb.Status) error {
+	reply := &ab.DeliverResponse{
+		Type: &ab.DeliverResponse_Status{Status: status},
+	}
+	return rs.Send(reply)
+}
+
+// SendBlockResponse sends block data and ignores pvtDataMap.
+func (rs *responseSender) SendBlockResponse(
+	block *cb.Block,
+	channelID string,
+	chain deliver.Chain,
+	signedData *protoutil.SignedData,
+) error {
+	response := &ab.DeliverResponse{
+		Type: &ab.DeliverResponse_Block{Block: block},
+	}
+	return rs.Send(response)
+}
+
+func (rs *responseSender) DataType() string {
+	return "block"
+}
+
+// NewServer creates an ab.AtomicBroadcastServer based on the broadcast target and ledger Reader
+func NewServer(
+	r *multichannel.Registrar,
+	metricsProvider metrics.Provider,
+	debug *localconfig.Debug,
+	timeWindow time.Duration,
+	mutualTLS bool,
+	expirationCheckDisabled bool,
+	fileLedgerConf localconfig.FileLedger,
+	drunixConfig localconfig.Drunix,
+) ab.AtomicBroadcastServer {
+	s := &server{
+		// dh: deliver.NewHandler(deliverSupport{Registrar: r}, timeWindow, mutualTLS, deliver.NewMetrics(metricsProvider), expirationCheckDisabled),
+		dh: deliver.NewHandler(newDeliverSupport(r, fileLedgerConf, drunixConfig.MvccEnabled), timeWindow,
+			mutualTLS, deliver.NewMetrics(metricsProvider), expirationCheckDisabled),
+		bh: &broadcast.Handler{
+			SupportRegistrar: broadcastSupport{Registrar: r},
+			Metrics:          broadcast.NewMetrics(metricsProvider),
+			FollowerBatching: drunixConfig.FollowerBatching,
+		},
+		debug:     debug,
+		Registrar: r,
+	}
+	return s
+}
+
+type msgTracer struct {
+	function string
+	debug    *localconfig.Debug
+}
+
+func (mt *msgTracer) trace(traceDir string, msg *cb.Envelope, err error) {
+	if err != nil {
+		return
+	}
+
+	now := time.Now().UnixNano()
+	path := fmt.Sprintf("%s%c%d_%p.%s", traceDir, os.PathSeparator, now, msg, mt.function)
+	logger.Debugf("Writing %s request trace to %s", mt.function, path)
+	go func() {
+		pb, err := proto.Marshal(msg)
+		if err != nil {
+			logger.Debugf("Error marshaling trace msg for %s: %s", path, err)
+			return
+		}
+		err = ioutil.WriteFile(path, pb, 0o660)
+		if err != nil {
+			logger.Debugf("Error writing trace msg for %s: %s", path, err)
+		}
+	}()
+}
+
+type broadcastMsgTracer struct {
+	ab.AtomicBroadcast_BroadcastServer
+	msgTracer
+}
+
+func (bmt *broadcastMsgTracer) Recv() (*cb.Envelope, error) {
+	msg, err := bmt.AtomicBroadcast_BroadcastServer.Recv()
+	if traceDir := bmt.debug.BroadcastTraceDir; traceDir != "" {
+		bmt.trace(bmt.debug.BroadcastTraceDir, msg, err)
+	}
+	return msg, err
+}
+
+type deliverMsgTracer struct {
+	deliver.Receiver
+	msgTracer
+}
+
+func (dmt *deliverMsgTracer) Recv() (*cb.Envelope, error) {
+	msg, err := dmt.Receiver.Recv()
+	if traceDir := dmt.debug.DeliverTraceDir; traceDir != "" {
+		dmt.trace(traceDir, msg, err)
+	}
+	return msg, err
+}
+
+// Broadcast receives a stream of messages from a client for ordering
+func (s *server) Broadcast(srv ab.AtomicBroadcast_BroadcastServer) error {
+	logger.Debugf("Starting new Broadcast handler")
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Criticalf("Broadcast client triggered panic: %s\n%s", r, debug.Stack())
+		}
+		logger.Debugf("Closing Broadcast stream")
+	}()
+	return s.bh.Handle(&broadcastMsgTracer{
+		AtomicBroadcast_BroadcastServer: srv,
+		msgTracer: msgTracer{
+			debug:    s.debug,
+			function: "Broadcast",
+		},
+	})
+}
+
+// Deliver sends a stream of blocks to a client after ordering
+func (s *server) Deliver(srv ab.AtomicBroadcast_DeliverServer) error {
+	logger.Debugf("Starting new Deliver handler")
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Criticalf("Deliver client triggered panic: %s\n%s", r, debug.Stack())
+		}
+		logger.Debugf("Closing Deliver stream")
+	}()
+
+	policyChecker := func(env *cb.Envelope, channelID string) error {
+		chain := s.GetChain(channelID)
+		if chain == nil {
+			return errors.Errorf("channel %s not found", channelID)
+		}
+		// In maintenance mode, we typically require the signature of /Channel/Orderer/Readers.
+		// This will block Deliver requests from peers (which normally satisfy /Channel/Readers).
+		sf := msgprocessor.NewSigFilter(policies.ChannelReaders, policies.ChannelOrdererReaders, chain)
+		return sf.Apply(env)
+	}
+	deliverServer := &deliver.Server{
+		PolicyChecker: deliver.PolicyCheckerFunc(policyChecker),
+		Receiver: &deliverMsgTracer{
+			Receiver: srv,
+			msgTracer: msgTracer{
+				debug:    s.debug,
+				function: "Deliver",
+			},
+		},
+		ResponseSender: &responseSender{
+			AtomicBroadcast_DeliverServer: srv,
+		},
+	}
+	return s.dh.Handle(srv.Context(), deliverServer)
+}

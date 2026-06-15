@@ -1,0 +1,55 @@
+/*
+Copyright National Payments Corporation of India. All Rights Reserved.
+ 
+SPDX-License-Identifier: Apache-2.0
+*/
+/*
+	DRUNIX
+*/
+syntax = "proto3";
+
+option go_package = "github.com/npci/drunix/common/sparseblocks";
+
+package sparseblock;
+
+// proto file for sparsedata
+
+message OrgBlockDetailsProto {
+    uint64 OrgBlockNumber = 1;
+    bytes Authpath = 2;
+    bytes Hash = 3;
+    repeated uint64 TxnIndexList = 4;
+    bytes PrevioushHash = 5;
+    uint64 PrevFatblockNumber = 6;
+    uint64 LastConfigBlockNum = 7;
+    bytes MetadataSignature = 8;
+    bytes MetadataLastConfig = 9;
+    bytes SparseBlockFilter = 10;
+}
+
+message LastBlockMappingProto {
+    uint64 LastOrgBlockNum = 1;
+    bytes LastOrgBlockHash = 2;
+    uint64 SourceFatBlockNum = 3;
+    uint64 LastConfigBlockNum = 4;
+}
+
+message ChannelHeadInfoProto {
+	uint64 LastFatBlockNumberProcessed = 1;                      
+	map<string, LastBlockMappingProto> OrgHeadPostion = 2;
+}
+
+message FatBlockMerkleInfoProto {
+    bytes MerkleRoot = 1;
+    map<string, OrgBlockDetailsProto> OrgHashMap = 2;
+}
+
+message TxnInfoProto {
+	uint64 IndexInFatBlock = 1;
+	int32  TxnMVCCStatus = 2;
+}
+
+message SparseTxnFilterProto {
+	uint64 FatBlockNumber = 1;
+	repeated TxnInfoProto TxnInfoList = 2;
+}

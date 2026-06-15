@@ -1,0 +1,132 @@
+version: v1
+build:
+  excludes:
+    - bindings
+lint:
+  use:
+    - DEFAULT
+  except:
+    - PACKAGE_VERSION_SUFFIX
+  ignore:
+    - google
+  # IMPORTANT: the following rules are ignored due to *existing* proto files.
+  # Please DO NOT add new files to this list unless strictly necessary.
+  ignore_only:
+    DIRECTORY_SAME_PACKAGE:
+      - msp/identities.proto
+      - msp/msp_config.proto
+      - msp/msp_principal.proto
+    ENUM_VALUE_PREFIX:
+      - common/common.proto
+      - common/policies.proto
+      - gossip/message.proto
+      - ledger/rwset/rwset.proto
+      - msp/msp_principal.proto
+      - orderer/ab.proto
+      - orderer/kafka.proto
+      - peer/chaincode.proto
+      - peer/chaincode_shim.proto
+      - peer/transaction.proto
+    ENUM_ZERO_VALUE_SUFFIX:
+      - common/common.proto
+      - common/policies.proto
+      - gossip/message.proto
+      - ledger/rwset/rwset.proto
+      - msp/msp_principal.proto
+      - orderer/ab.proto
+      - orderer/configuration.proto
+      - orderer/kafka.proto
+      - peer/chaincode.proto
+      - peer/chaincode_shim.proto
+      - peer/transaction.proto
+    FIELD_LOWER_SNAKE_CASE:
+      - common/ledger.proto
+      - gossip/message.proto
+      - peer/chaincode_shim.proto
+      - peer/lifecycle/db.proto
+      - peer/proposal.proto
+      - peer/transaction.proto
+    ONEOF_LOWER_SNAKE_CASE:
+      - common/policies.proto
+      - orderer/ab.proto
+      - orderer/kafka.proto
+      - peer/events.proto
+      - peer/lifecycle/db.proto
+      - peer/lifecycle/lifecycle.proto
+      - peer/policy.proto
+    PACKAGE_DIRECTORY_MATCH:
+      - ledger/queryresult/kv_query_result.proto
+      - ledger/rwset/kvrwset/kv_rwset.proto
+      - ledger/rwset/rwset.proto
+      - msp/msp_principal.proto
+      - orderer/etcdraft/configuration.proto
+      - orderer/etcdraft/metadata.proto
+      - peer/chaincode.proto
+      - peer/chaincode_event.proto
+      - peer/chaincode_shim.proto
+      - peer/collection.proto
+      - peer/configuration.proto
+      - peer/events.proto
+      - peer/lifecycle/chaincode_definition.proto
+      - peer/lifecycle/db.proto
+      - peer/lifecycle/lifecycle.proto
+      - peer/peer.proto
+      - peer/policy.proto
+      - peer/proposal.proto
+      - peer/proposal_response.proto
+      - peer/query.proto
+      - peer/resources.proto
+      - peer/signed_cc_dep_spec.proto
+      - peer/snapshot.proto
+      - peer/transaction.proto
+    PACKAGE_SAME_DIRECTORY:
+      - common/collection.proto
+      - common/common.proto
+      - common/configtx.proto
+      - common/configuration.proto
+      - common/ledger.proto
+      - common/policies.proto
+      - msp/msp_principal.proto
+    PACKAGE_SAME_GO_PACKAGE:
+      - common/collection.proto
+      - common/common.proto
+      - common/configtx.proto
+      - common/configuration.proto
+      - common/ledger.proto
+      - common/policies.proto
+      - msp/msp_principal.proto
+    RPC_REQUEST_RESPONSE_UNIQUE:
+      - gossip/message.proto
+      - orderer/ab.proto
+      - peer/chaincode_shim.proto
+      - peer/events.proto
+      - peer/snapshot.proto
+    RPC_REQUEST_STANDARD_NAME:
+      - discovery/protocol.proto
+      - gateway/gateway.proto
+      - gossip/message.proto
+      - orderer/ab.proto
+      - peer/chaincode_shim.proto
+      - peer/events.proto
+      - peer/peer.proto
+      - peer/snapshot.proto
+    RPC_RESPONSE_STANDARD_NAME:
+      - discovery/protocol.proto
+      - gossip/message.proto
+      - peer/chaincode_shim.proto
+      - peer/events.proto
+      - peer/peer.proto
+      - peer/snapshot.proto
+    SERVICE_SUFFIX:
+      - discovery/protocol.proto
+      - gateway/gateway.proto
+      - gossip/message.proto
+      - orderer/ab.proto
+      - orderer/cluster.proto
+      - peer/chaincode_shim.proto
+      - peer/events.proto
+      - peer/peer.proto
+      - peer/snapshot.proto
+breaking:
+  use:
+    - FILE

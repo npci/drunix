@@ -1,0 +1,75 @@
+version: v1
+managed:
+  enabled: true
+  go_package_prefix:
+    default: github.com/hyperledger/fabric-protos-go-apiv2
+  java_multiple_files: true
+  java_package_prefix: org.hyperledger.fabric.protos
+  override:
+    JAVA_OUTER_CLASSNAME:
+      common/configtx.proto: ConfigTxProto
+      ledger/queryresult/kv_query_result.proto: KVQueryResultProto
+      ledger/rwset/kvrwset/kv_rwset.proto: KVRWSetProto
+      ledger/rwset/rwset.proto: RWSetProto
+      msp/msp_config.proto: MSPConfigProto
+      msp/msp_principal.proto: MSPPrincipalProto
+    JAVA_PACKAGE:
+      google/rpc/status.proto: com.google.rpc
+      ledger/queryresult/kv_query_result.proto: org.hyperledger.fabric.protos.ledger.queryresult
+      ledger/rwset/kvrwset/kv_rwset.proto: org.hyperledger.fabric.protos.ledger.rwset.kvrwset
+      ledger/rwset/rwset.proto: org.hyperledger.fabric.protos.ledger.rwset
+      msp/msp_principal.proto: org.hyperledger.fabric.protos.common
+      orderer/etcdraft/configuration.proto: org.hyperledger.fabric.protos.orderer.etcdraft
+      orderer/etcdraft/metadata.proto: org.hyperledger.fabric.protos.orderer.etcdraft
+      peer/lifecycle/chaincode_definition.proto: org.hyperledger.fabric.protos.peer.lifecycle
+      peer/lifecycle/db.proto: org.hyperledger.fabric.protos.peer.lifecycle
+      peer/lifecycle/lifecycle.proto: org.hyperledger.fabric.protos.peer.lifecycle
+      peer/chaincode_event.proto: org.hyperledger.fabric.protos.peer
+      peer/chaincode_shim.proto: org.hyperledger.fabric.protos.peer
+      peer/chaincode.proto: org.hyperledger.fabric.protos.peer
+      peer/collection.proto: org.hyperledger.fabric.protos.peer
+      peer/configuration.proto: org.hyperledger.fabric.protos.peer
+      peer/events.proto: org.hyperledger.fabric.protos.peer
+      peer/peer.proto: org.hyperledger.fabric.protos.peer
+      peer/policy.proto: org.hyperledger.fabric.protos.peer
+      peer/proposal_response.proto: org.hyperledger.fabric.protos.peer
+      peer/proposal.proto: org.hyperledger.fabric.protos.peer
+      peer/query.proto: org.hyperledger.fabric.protos.peer
+      peer/resources.proto: org.hyperledger.fabric.protos.peer
+      peer/signed_cc_dep_spec.proto: org.hyperledger.fabric.protos.peer
+      peer/snapshot.proto: org.hyperledger.fabric.protos.peer
+      peer/transaction.proto: org.hyperledger.fabric.protos.peer
+plugins:
+  - name: doc
+    out: docs
+    opt:
+      - markdown
+      - protos.md
+    strategy: all
+  - name: go
+    out: bindings/go-apiv2
+    opt: paths=source_relative
+  - name: go-grpc
+    out: bindings/go-apiv2
+    opt:
+      - paths=source_relative
+      - require_unimplemented_servers=false
+  - name: java
+    out: bindings/java/src/main/java
+  - name: grpc-java
+    out: bindings/java/src/main/java
+  - name: js
+    out: bindings/node/src
+    opt:
+      - import_style=commonjs
+      - binary
+  - name: js-grpc
+    path: grpc_tools_node_protoc_plugin
+    out: bindings/node/src
+    opt:
+      - grpc_js
+  - name: ts
+    out: bindings/node/src
+    opt:
+      - service=grpc-node
+      - mode=grpc-js

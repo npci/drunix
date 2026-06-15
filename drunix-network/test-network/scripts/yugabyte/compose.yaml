@@ -1,0 +1,45 @@
+networks:
+  test:
+    name: drunix_test
+services:
+  yugabyte-org1:
+    container_name: yugabyte-org1
+    image: yugabytedb/yugabyte:2025.2.0.0-b131
+    command: ["bin/yugabyted", "start", "--background=false"]
+    ports:
+      - "5433:5433"
+    networks:
+      - test
+
+  yugabyte-org2:
+    container_name: yugabyte-org2
+    image: yugabytedb/yugabyte:2025.2.0.0-b131
+    command: ["bin/yugabyted", "start", "--background=false"]
+    ports:
+      - "5123:5433"
+    networks:
+      - test
+
+  hlf_keydb_org1msp:
+    image: eqalpha/keydb
+    container_name: hlf_keydb_org1msp
+    command: ["keydb-server", "/etc/keydb/keydb.conf"]
+    labels:
+      service: drunix
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6479:6379"
+    networks:
+      - test
+   
+  hlf_keydb_org2msp:
+    image: eqalpha/keydb
+    container_name: hlf_keydb_org2msp
+    command: ["keydb-server", "/etc/keydb/keydb.conf"]
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6389:6379"
+    networks:
+      - test

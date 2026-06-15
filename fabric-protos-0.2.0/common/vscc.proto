@@ -1,0 +1,37 @@
+// Copyright the Hyperledger Fabric contributors. All rights reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+syntax = "proto3";
+
+option go_package = "github.com/hyperledger/fabric-protos-go/common";
+option java_package = "org.hyperledger.fabric.protos.common";
+
+package common;
+
+import "common/common.proto";
+
+message VsccRequest {
+    int64 blockNum = 1;
+    repeated VsccTransaction transactions = 2;
+    string channelId = 3;
+}
+
+message VsccTransaction {
+    int64 TxIdx = 1;
+    common.Envelope env = 2;
+}
+
+message VsccResponse {
+    int32 status = 1;
+    repeated ValidationResponse validation_responses = 2;
+}
+
+message ValidationResponse {
+    int32 tx_idx = 1;
+    int32 validation_code = 2;
+}
+
+service VsccService {
+    rpc ProcessVscc(VsccRequest) returns (VsccResponse);
+}

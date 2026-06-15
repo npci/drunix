@@ -1,0 +1,16 @@
+#SPDX-License-Identifier: Apache-2.0
+
+.DS_Store
+*~
+*#
+.#*
+.*.sw*
+/build
+.idea
+.vscode
+
+/docs/protos.md
+/google
+/bindings/go-apiv2/**/*.pb.go
+/bindings/java/src
+/bindings/node/src

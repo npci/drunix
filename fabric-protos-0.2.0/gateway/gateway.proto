@@ -1,0 +1,229 @@
+// Copyright the Hyperledger Fabric contributors. All rights reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+syntax = "proto3";
+
+option go_package = "github.com/hyperledger/fabric-protos-go/gateway";
+option java_multiple_files = true;
+option java_package = "org.hyperledger.fabric.protos.gateway";
+option java_outer_classname = "GatewayProto";
+
+package gateway;
+
+import "peer/chaincode_event.proto";
+import "peer/proposal.proto";
+import "peer/proposal_response.proto";
+import "peer/transaction.proto";
+import "common/common.proto";
+import "orderer/ab.proto";
+
+// The Gateway API for evaluating and submitting transactions via the gateway.
+// Transaction evaluation (query) requires the invocation of the Evaluate service
+// Transaction submission (ledger updates) is a two step process invoking Endorse
+// followed by Submit. A third step, invoking CommitStatus, is required if the
+// clients wish to wait for a Transaction to be committed.
+// The proposal and transaction must be signed by the client before each step.
+service Gateway {
+    // The Endorse service passes a proposed transaction to the gateway in order to
+    // obtain sufficient endorsement.
+    // The gateway will determine the endorsement plan for the requested chaincode and
+    // forward to the appropriate peers for endorsement. It will return to the client a
+    // prepared transaction in the form of an Envelope message as defined
+    // in common/common.proto. The client must sign the contents of this envelope
+    // before invoking the Submit service.
+    rpc Endorse(EndorseRequest) returns (EndorseResponse);
+
+    // The Submit service will process the prepared transaction returned from Endorse service
+    // once it has been signed by the client. It will wait for the transaction to be submitted to the
+    // ordering service but the client must invoke the CommitStatus service to wait for the transaction
+    // to be committed.
+    rpc Submit(SubmitRequest) returns (SubmitResponse);
+
+    // The CommitStatus service will indicate whether a prepared transaction previously submitted to
+    // the Submit service has been committed. It will wait for the commit to occur if it hasn’t already
+    // committed.
+    rpc CommitStatus(SignedCommitStatusRequest) returns (CommitStatusResponse);
+
+    // The Evaluate service passes a proposed transaction to the gateway in order to invoke the
+    // transaction function and return the result to the client. No ledger updates are made.
+    // The gateway will select an appropriate peer to query based on block height and load.
+    rpc Evaluate(EvaluateRequest) returns (EvaluateResponse);
+
+    // The ChaincodeEvents service supplies a stream of responses, each containing all the events emitted by the
+    // requested chaincode for a specific block. The streamed responses are ordered by ascending block number. Responses
+    // are only returned for blocks that contain the requested events, while blocks not containing any of the requested
+    // events are skipped.
+    rpc ChaincodeEvents(SignedChaincodeEventsRequest) returns (stream ChaincodeEventsResponse);
+
+
+    // The ConfigEvents service supplies a stream of responses, each containing events
+    // for a config transaction or approve/commit chaincode transaction. 
+    rpc ConfigEvents(ConfigEventsRequest) returns (stream ConfigEventsResponse);
+}
+
+// EndorseRequest contains the details required to obtain sufficient endorsements for a
+// transaction to be committed to the ledger.
+message EndorseRequest {
+    // The unique identifier for the transaction.
+    string transaction_id = 1;
+    // Identifier of the channel this request is bound for.
+    string channel_id = 2;
+    // The signed proposal ready for endorsement.
+    protos.SignedProposal proposed_transaction = 3;
+    // If targeting the peers of specific organizations (e.g. for private data scenarios),
+    // the list of organizations' MSPIDs should be supplied here.
+    repeated string endorsing_organizations = 4;
+}
+
+// EndorseResponse returns the result of endorsing a transaction.
+message EndorseResponse {
+    // The unsigned set of transaction responses from the endorsing peers for signing by the client
+    // before submitting to ordering service (via gateway).
+    common.Envelope prepared_transaction = 1;
+}
+
+// SubmitRequest contains the details required to submit a transaction (update the ledger).
+message SubmitRequest {
+    // Identifier of the transaction to submit.
+    string transaction_id = 1;
+    // Identifier of the channel this request is bound for.
+    string channel_id = 2;
+    // The signed set of endorsed transaction responses to submit.
+    common.Envelope prepared_transaction = 3;
+}
+
+// SubmitResponse returns the result of submitting a transaction.
+message SubmitResponse {
+    // Nothing yet
+}
+
+// SignedCommitStatusRequest contains a serialized CommitStatusRequest message, and a digital signature for the
+// serialized request message.
+message SignedCommitStatusRequest {
+    // Serialized CommitStatusRequest message.
+    bytes request = 1;
+    // Signature for request message.
+    bytes signature = 2;
+}
+
+// CommitStatusRequest contains the details required to check whether a transaction has been
+// successfully committed.
+message CommitStatusRequest {
+    // Identifier of the transaction to check.
+    string transaction_id = 1;
+    // Identifier of the channel this request is bound for.
+    string channel_id = 2;
+    // Client requestor identity.
+    bytes identity = 3;
+}
+
+// CommitStatusResponse returns the result of committing a transaction.
+message CommitStatusResponse {
+    // The result of the transaction commit, as defined in peer/transaction.proto.
+    protos.TxValidationCode result = 1;
+    // Block number that contains the transaction.
+    uint64 block_number = 2;
+}
+
+// EvaluateRequest contains the details required to evaluate a transaction (query the ledger).
+message EvaluateRequest {
+    // Identifier of the transaction to evaluate.
+    string transaction_id = 1;
+    // Identifier of the channel this request is bound for.
+    string channel_id = 2;
+    // The signed proposal ready for evaluation.
+    protos.SignedProposal proposed_transaction = 3;
+    // If targeting the peers of specific organizations (e.g. for private data scenarios),
+    // the list of organizations' MSPIDs should be supplied here.
+    repeated string target_organizations = 4;
+}
+
+// EvaluateResponse returns the result of evaluating a transaction.
+message EvaluateResponse {
+    // The response that is returned by the transaction function, as defined
+    // in peer/proposal_response.proto.
+    protos.Response result = 1;
+}
+
+// SignedChaincodeEventsRequest contains a serialized ChaincodeEventsRequest message, and a digital signature for the
+// serialized request message.
+message SignedChaincodeEventsRequest {
+    // Serialized ChaincodeEventsRequest message.
+    bytes request = 1;
+    // Signature for request message.
+    bytes signature = 2;
+}
+
+// ChaincodeEventsRequest contains details of the chaincode events that the caller wants to receive.
+message ChaincodeEventsRequest {
+    // Identifier of the channel this request is bound for.
+    string channel_id = 1;
+    // Name of the chaincode for which events are requested.
+    string chaincode_id = 2;
+    // Client requestor identity.
+    bytes identity = 3;
+    // Position within the ledger at which to start reading events.
+    orderer.SeekPosition start_position = 4;
+    // Only returns events after this transaction ID. Transactions up to and including this one should be ignored. This
+    // is used to allow resume of event listening from a certain position within a start block specified by
+    // start_position.
+    string after_transaction_id = 5;
+}
+
+// ChaincodeEventsResponse returns chaincode events emitted from a specific block.
+message ChaincodeEventsResponse {
+    // Chaincode events emitted by the requested chaincode. The events are presented in the same order that the
+    // transactions that emitted them appear within the block.
+    repeated protos.ChaincodeEvent events = 1;
+    // Block number in which the chaincode events were emitted.
+    uint64 block_number = 2;
+}
+
+// If any of the functions in the Gateway service returns an error, then it will be in the format of
+// a google.rpc.Status message. The 'details' field of this message will be populated with extra
+// information if the error is a result of one or more failed requests to remote peers or orderer nodes.
+// ErrorDetail contains details of errors that are received by any of the endorsing peers
+// as a result of processing the Evaluate or Endorse services, or from the ordering node(s) as a result of
+// processing the Submit service.
+message ErrorDetail {
+    // The address of the endorsing peer or ordering node that returned an error.
+    string address = 1;
+    // The MSP Identifier of this node.
+    string msp_id = 2;
+    // The error message returned by this node.
+    string message = 3;
+}
+
+// ProposedTransaction contains the details required for offline signing prior to evaluating or endorsing
+// a transaction.
+message ProposedTransaction {
+    // Identifier of the proposed transaction.
+    string transaction_id = 1;
+    // The signed proposal.
+    protos.SignedProposal proposal = 2;
+    // The list of endorsing organizations.
+    repeated string endorsing_organizations = 3;
+}
+
+// PreparedTransaction contains the details required for offline signing prior to submitting a transaction.
+message PreparedTransaction {
+    // Identifier of the prepared transaction.
+    string transaction_id = 1;
+    // The transaction envelope.
+    common.Envelope envelope = 2;
+}
+
+// ConfigEventsRequest contains details of the config events that the caller wants to receive.
+message ConfigEventsRequest {
+    // Identifier of the peer this request sent from.
+    string peer_id = 1;
+    // Identifier of the channel this request is bound for.
+    string channel_id = 2;
+}
+
+// ConfigEventsResponse returns config events from block commited by the peer.
+message ConfigEventsResponse {
+    // Identifier of the channel in which config transaction was committed.
+    string channel_id = 1;
+}

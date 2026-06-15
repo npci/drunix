@@ -1,0 +1,7 @@
+version: v1
+plugins:
+  - name: go
+    out: ./../fabric-protos-go-0.2.0
+    opt:
+      - paths=source_relative
+      - plugins=grpc

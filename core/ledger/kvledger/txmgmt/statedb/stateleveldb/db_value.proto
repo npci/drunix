@@ -1,0 +1,27 @@
+/*
+Copyright IBM Corp. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+Modifications Copyright National Payments Corporation of India
+*/
+
+syntax = "proto3";
+
+option go_package = "github.com/npci/drunix/core/ledger/kvledger/txmgmt/statedb/stateleveldb";
+
+package stateleveldb;
+
+message DBValue {
+    bytes version = 1;
+    bytes value = 2;
+    bytes metadata = 3;
+}
+
+/*
+	DRUNIX: structure of MVCC in orderer 
+*/
+message DBMVCC {
+    // storing version in leveldb
+    bytes version = 1;
+    bool is_delete = 2;
+}

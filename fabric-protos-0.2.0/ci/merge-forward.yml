@@ -1,0 +1,21 @@
+# Copyright the Hyperledger Fabric contributors. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+steps:
+- task: InstallSSHKey@0
+  inputs:
+    knownHostsEntry: github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==
+    sshPublicKey: ${{ parameters.public_key }}
+    sshKeySecureFile: ${{ parameters.deploy_key }}
+  condition: and(succeeded(), ne(variables['build.reason'], 'PullRequest'))
+- script: |
+    set -eu -o pipefail
+    cd build/${{ parameters.repo }}
+    git config --global user.email "fabric-build@hyperledger.org"
+    git config --global user.name "Fabric Build Agent"
+    git config --global url.git@github.com:.pushinsteadof https://github.com/
+    git add -A
+    git diff --cached --quiet || git commit -m "$BUILD_SOURCEVERSIONMESSAGE" --no-edit
+    git push origin ${{ parameters.branch }}
+  condition: and(succeeded(), ne(variables['build.reason'], 'PullRequest'))
