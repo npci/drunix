@@ -22,18 +22,18 @@ import (
 	"github.com/npci/drunix/bccsp"
 )
 
-// NewFileBasedKeyStore instantiated a file-based key store at a given position.
+// NewFileBasedKeyStore instantiates a file-based key store at a given position.
 // The key store can be encrypted if a non-empty password is specified.
-// It can be also be set as read only. In this case, any store operation
-// will be forbidden
+// It can also be set as read only. In this case, any store operation
+// will be forbidden.
 func NewFileBasedKeyStore(pwd []byte, path string, readOnly bool) (bccsp.KeyStore, error) {
 	ks := &fileBasedKeyStore{}
 	return ks, ks.Init(pwd, path, readOnly)
 }
 
 // fileBasedKeyStore is a folder-based KeyStore.
-// Each key is stored in a separated file whose name contains the key's SKI
-// and flags to identity the key's type. All the keys are stored in
+// Each key is stored in a separate file whose name contains the key's SKI
+// and flags to identify the key's type. All the keys are stored in
 // a folder whose path is provided at initialization time.
 // The KeyStore can be initialized with a password, this password
 // is used to encrypt and decrypt the files storing the keys.
@@ -52,8 +52,8 @@ type fileBasedKeyStore struct {
 
 // Init initializes this KeyStore with a password, a path to a folder
 // where the keys are stored and a read only flag.
-// Each key is stored in a separated file whose name contains the key's SKI
-// and flags to identity the key's type.
+// Each key is stored in a separate file whose name contains the key's SKI
+// and flags to identify the key's type.
 // If the KeyStore is initialized with a password, this password
 // is used to encrypt and decrypt the files storing the keys.
 // The pwd can be nil for non-encrypted KeyStores. If an encrypted
@@ -193,7 +193,7 @@ func (ks *fileBasedKeyStore) StoreKey(k bccsp.Key) (err error) {
 		}
 
 	default:
-		return fmt.Errorf("key type not reconigned [%s]", k)
+		return fmt.Errorf("key type not recognised [%s]", k)
 	}
 
 	return
@@ -280,7 +280,7 @@ func (ks *fileBasedKeyStore) storePublicKey(alias string, publicKey interface{})
 
 	err = ioutil.WriteFile(ks.getPathForAlias(alias, "pk"), rawKey, 0o600)
 	if err != nil {
-		logger.Errorf("Failed storing private key [%s]: [%s]", alias, err)
+		logger.Errorf("Failed storing public key [%s]: [%s]", alias, err)
 		return err
 	}
 
@@ -337,7 +337,7 @@ func (ks *fileBasedKeyStore) loadPublicKey(alias string) (interface{}, error) {
 
 	privateKey, err := pemToPublicKey(raw, ks.pwd)
 	if err != nil {
-		logger.Errorf("Failed parsing private key [%s]: [%s].", alias, err.Error())
+		logger.Errorf("Failed parsing public key [%s]: [%s].", alias, err.Error())
 
 		return nil, err
 	}

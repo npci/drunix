@@ -29,7 +29,7 @@ const (
 // SWFactory is the factory of the software-based BCCSP.
 type SWFactory struct{}
 
-// Name returns the name of this factory
+// Name returns the name of this factory.
 func (f *SWFactory) Name() string {
 	return SoftwareBasedFactoryName
 }
@@ -59,15 +59,15 @@ func (f *SWFactory) Get(config *FactoryOpts) (bccsp.BCCSP, error) {
 	return sw.NewWithParams(swOpts.Security, swOpts.Hash, ks)
 }
 
-// SwOpts contains options for the SWFactory
+// SwOpts contains options for the SWFactory.
 type SwOpts struct {
-	// Default algorithms when not specified (Deprecated?)
+	// Default algorithms when not specified (Deprecated?).
 	Security     int               `json:"security" yaml:"Security"`
 	Hash         string            `json:"hash" yaml:"Hash"`
 	FileKeystore *FileKeystoreOpts `json:"filekeystore,omitempty" yaml:"FileKeyStore,omitempty"`
 }
 
-// Pluggable Keystores, could add JKS, P12, etc..
+// Pluggable Keystores, could add JKS, P12, etc.
 type FileKeystoreOpts struct {
 	KeyStorePath string `yaml:"KeyStore"`
 }

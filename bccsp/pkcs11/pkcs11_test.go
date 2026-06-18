@@ -519,7 +519,7 @@ func TestECDSALowS(t *testing.T) {
 	digest, err := csp.Hash([]byte("Hello World"), &bccsp.SHAOpts{})
 	require.NoError(t, err)
 
-	// Ensure that signature with low-S are generated
+	// Ensure that signatures with low-S are generated
 	t.Run("GeneratesLowS", func(t *testing.T) {
 		signature, err := csp.Sign(k, digest, nil)
 		require.NoError(t, err)
@@ -539,7 +539,7 @@ func TestECDSALowS(t *testing.T) {
 		require.True(t, valid, "signature should be valid")
 	})
 
-	// Ensure that signature with high-S are rejected.
+	// Ensure that signatures with high-S are rejected.
 	t.Run("RejectsHighS", func(t *testing.T) {
 		for {
 			R, S, err := csp.signP11ECDSA(k.SKI(), digest)
@@ -558,7 +558,7 @@ func TestECDSALowS(t *testing.T) {
 }
 
 func TestInitialize(t *testing.T) {
-	// Setup PKCS11 library and provide initial set of values
+	// Set up PKCS11 library and provide initial set of values
 	lib, pin, label := FindPKCS11Lib()
 
 	t.Run("MissingLibrary", func(t *testing.T) {

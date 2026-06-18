@@ -30,32 +30,32 @@ import (
 func TestHash(t *testing.T) {
 	t.Parallel()
 
-	expectetMsg := []byte{1, 2, 3, 4}
+	expectedMsg := []byte{1, 2, 3, 4}
 	expectedOpts := &mocks2.HashOpts{}
-	expectetValue := []byte{1, 2, 3, 4, 5}
+	expectedValue := []byte{1, 2, 3, 4, 5}
 	expectedErr := errors.New("Expected Error")
 
 	hashers := make(map[reflect.Type]Hasher)
 	hashers[reflect.TypeOf(&mocks2.HashOpts{})] = &mocks.Hasher{
-		MsgArg:  expectetMsg,
+		MsgArg:  expectedMsg,
 		OptsArg: expectedOpts,
-		Value:   expectetValue,
+		Value:   expectedValue,
 		Err:     nil,
 	}
 	csp := CSP{Hashers: hashers}
-	value, err := csp.Hash(expectetMsg, expectedOpts)
-	require.Equal(t, expectetValue, value)
+	value, err := csp.Hash(expectedMsg, expectedOpts)
+	require.Equal(t, expectedValue, value)
 	require.Nil(t, err)
 
 	hashers = make(map[reflect.Type]Hasher)
 	hashers[reflect.TypeOf(&mocks2.HashOpts{})] = &mocks.Hasher{
-		MsgArg:  expectetMsg,
+		MsgArg:  expectedMsg,
 		OptsArg: expectedOpts,
 		Value:   nil,
 		Err:     expectedErr,
 	}
 	csp = CSP{Hashers: hashers}
-	value, err = csp.Hash(expectetMsg, expectedOpts)
+	value, err = csp.Hash(expectedMsg, expectedOpts)
 	require.Nil(t, value)
 	require.Contains(t, err.Error(), expectedErr.Error())
 }
@@ -64,24 +64,24 @@ func TestGetHash(t *testing.T) {
 	t.Parallel()
 
 	expectedOpts := &mocks2.HashOpts{}
-	expectetValue := sha256.New()
+	expectedValue := sha256.New()
 	expectedErr := errors.New("Expected Error")
 
 	hashers := make(map[reflect.Type]Hasher)
 	hashers[reflect.TypeOf(&mocks2.HashOpts{})] = &mocks.Hasher{
 		OptsArg:   expectedOpts,
-		ValueHash: expectetValue,
+		ValueHash: expectedValue,
 		Err:       nil,
 	}
 	csp := CSP{Hashers: hashers}
 	value, err := csp.GetHash(expectedOpts)
-	require.Equal(t, expectetValue, value)
+	require.Equal(t, expectedValue, value)
 	require.Nil(t, err)
 
 	hashers = make(map[reflect.Type]Hasher)
 	hashers[reflect.TypeOf(&mocks2.HashOpts{})] = &mocks.Hasher{
 		OptsArg:   expectedOpts,
-		ValueHash: expectetValue,
+		ValueHash: expectedValue,
 		Err:       expectedErr,
 	}
 	csp = CSP{Hashers: hashers}

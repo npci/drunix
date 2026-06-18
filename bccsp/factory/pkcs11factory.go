@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	// PKCS11BasedFactoryName is the name of the factory of the hsm-based BCCSP implementation
+	// PKCS11BasedFactoryName is the name of the factory of the HSM-based BCCSP implementation
 	PKCS11BasedFactoryName = "PKCS11"
 )
 

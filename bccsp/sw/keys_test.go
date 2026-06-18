@@ -129,7 +129,7 @@ func TestECDSAKeys(t *testing.T) {
 	}
 	keyFromPEM, err := pemToPrivateKey(rawPEM, nil)
 	if err != nil {
-		t.Fatalf("Failed converting DER to private key [%s]", err)
+		t.Fatalf("Failed converting PEM to private key [%s]", err)
 	}
 	ecdsaKeyFromPEM := keyFromPEM.(*ecdsa.PrivateKey)
 	// TODO: check the curve
@@ -146,7 +146,7 @@ func TestECDSAKeys(t *testing.T) {
 	// Nil Private Key <-> PEM
 	_, err = privateKeyToPEM(nil, nil)
 	if err == nil {
-		t.Fatal("PublicKeyToPEM should fail on nil")
+		t.Fatal("PrivateKeyToPEM should fail on nil")
 	}
 
 	_, err = privateKeyToPEM((*ecdsa.PrivateKey)(nil), nil)
@@ -156,12 +156,12 @@ func TestECDSAKeys(t *testing.T) {
 
 	_, err = pemToPrivateKey(nil, nil)
 	if err == nil {
-		t.Fatal("PEMtoPublicKey should fail on nil")
+		t.Fatal("pemToPrivateKey should fail on nil")
 	}
 
 	_, err = pemToPrivateKey([]byte{0, 1, 3, 4}, nil)
 	if err == nil {
-		t.Fatal("PEMtoPublicKey should fail invalid PEM")
+		t.Fatal("pemToPrivateKey should fail on invalid PEM")
 	}
 
 	_, err = derToPrivateKey(nil)
@@ -176,7 +176,7 @@ func TestECDSAKeys(t *testing.T) {
 
 	_, err = privateKeyToDER(nil)
 	if err == nil {
-		t.Fatal("DERToPrivateKey should fail on nil")
+		t.Fatal("PrivateKeyToDER should fail on nil")
 	}
 
 	// Private Key Encrypted PEM format
@@ -188,7 +188,7 @@ func TestECDSAKeys(t *testing.T) {
 	require.Error(t, err)
 	encKeyFromPEM, err := pemToPrivateKey(encPEM, []byte("passwd"))
 	if err != nil {
-		t.Fatalf("Failed converting DER to private key [%s]", err)
+		t.Fatalf("Failed converting PEM to private key [%s]", err)
 	}
 	ecdsaKeyFromEncPEM := encKeyFromPEM.(*ecdsa.PrivateKey)
 	// TODO: check the curve
@@ -213,15 +213,15 @@ func TestECDSAKeys(t *testing.T) {
 	}
 	keyFromPEM, err = pemToPublicKey(rawPEM, nil)
 	if err != nil {
-		t.Fatalf("Failed converting DER to public key [%s]", err)
+		t.Fatalf("Failed converting PEM to public key [%s]", err)
 	}
 	ecdsaPkFromPEM := keyFromPEM.(*ecdsa.PublicKey)
 	// TODO: check the curve
 	if key.X.Cmp(ecdsaPkFromPEM.X) != 0 {
-		t.Fatal("Failed converting PEM to private key. Invalid X coordinate.")
+		t.Fatal("Failed converting PEM to public key. Invalid X coordinate.")
 	}
 	if key.Y.Cmp(ecdsaPkFromPEM.Y) != 0 {
-		t.Fatal("Failed converting PEM to private key. Invalid Y coordinate.")
+		t.Fatal("Failed converting PEM to public key. Invalid Y coordinate.")
 	}
 
 	// Nil Public Key <-> PEM
@@ -243,21 +243,21 @@ func TestECDSAKeys(t *testing.T) {
 	// Public Key Encrypted PEM format
 	encPEM, err = publicKeyToPEM(&key.PublicKey, []byte("passwd"))
 	if err != nil {
-		t.Fatalf("Failed converting private key to encrypted PEM [%s]", err)
+		t.Fatalf("Failed converting public key to encrypted PEM [%s]", err)
 	}
 	_, err = pemToPublicKey(encPEM, nil)
 	require.Error(t, err)
 	pkFromEncPEM, err := pemToPublicKey(encPEM, []byte("passwd"))
 	if err != nil {
-		t.Fatalf("Failed converting DER to private key [%s]", err)
+		t.Fatalf("Failed converting PEM to public key [%s]", err)
 	}
 	ecdsaPkFromEncPEM := pkFromEncPEM.(*ecdsa.PublicKey)
 	// TODO: check the curve
 	if key.X.Cmp(ecdsaPkFromEncPEM.X) != 0 {
-		t.Fatal("Failed converting encrypted PEM to private key. Invalid X coordinate.")
+		t.Fatal("Failed converting encrypted PEM to public key. Invalid X coordinate.")
 	}
 	if key.Y.Cmp(ecdsaPkFromEncPEM.Y) != 0 {
-		t.Fatal("Failed converting encrypted PEM to private key. Invalid Y coordinate.")
+		t.Fatal("Failed converting encrypted PEM to public key. Invalid Y coordinate.")
 	}
 
 	_, err = pemToPublicKey(encPEM, []byte("passw"))
@@ -267,7 +267,7 @@ func TestECDSAKeys(t *testing.T) {
 
 	_, err = pemToPublicKey(encPEM, []byte("passw"))
 	if err == nil {
-		t.Fatal("PEMtoPublicKey should fail on nil password")
+		t.Fatal("PEMtoPublicKey should fail on wrong password")
 	}
 
 	_, err = pemToPublicKey(nil, []byte("passwd"))
@@ -293,10 +293,10 @@ func TestECDSAKeys(t *testing.T) {
 	ecdsaPkFromPEM = keyFromDER.(*ecdsa.PublicKey)
 	// TODO: check the curve
 	if key.X.Cmp(ecdsaPkFromPEM.X) != 0 {
-		t.Fatal("Failed converting PEM to private key. Invalid X coordinate.")
+		t.Fatal("Failed converting DER to public key. Invalid X coordinate.")
 	}
 	if key.Y.Cmp(ecdsaPkFromPEM.Y) != 0 {
-		t.Fatal("Failed converting PEM to private key. Invalid Y coordinate.")
+		t.Fatal("Failed converting DER to public key. Invalid Y coordinate.")
 	}
 }
 

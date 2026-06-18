@@ -20,7 +20,7 @@ type ECDSASignature struct {
 }
 
 // curveHalfOrders contains the precomputed curve group orders halved.
-// It is used to ensure that signature' S value is lower or equal to the
+// It is used to ensure that signature's S value is lower or equal to the
 // curve group order halved. We accept only low-S signatures.
 // They are precomputed for efficiency reasons.
 var curveHalfOrders = map[elliptic.Curve]*big.Int{
@@ -43,7 +43,7 @@ func UnmarshalECDSASignature(raw []byte) (*big.Int, *big.Int, error) {
 	sig := new(ECDSASignature)
 	_, err := asn1.Unmarshal(raw, sig)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed unmashalling signature [%s]", err)
+		return nil, nil, fmt.Errorf("failed unmarshalling signature [%s]", err)
 	}
 
 	// Validate sig
@@ -95,8 +95,8 @@ func ToLowS(k *ecdsa.PublicKey, s *big.Int) (*big.Int, error) {
 	}
 
 	if !lowS {
-		// Set s to N - s that will be then in the lower part of signature space
-		// less or equal to half order
+		// Set s to N - s which will then be in the lower part of signature space
+		// less than or equal to the half order
 		s.Sub(k.Params().N, s)
 
 		return s, nil

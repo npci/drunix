@@ -30,7 +30,7 @@ var logger = flogging.MustGetLogger("bccsp_sw")
 // on wrappers. It can be customized by providing implementations for the
 // following algorithm-based wrappers: KeyGenerator, KeyDeriver, KeyImporter,
 // Encryptor, Decryptor, Signer, Verifier, Hasher. Each wrapper is bound to a
-// goland type representing either an option or a key.
+// golang type representing either an option or a key.
 type CSP struct {
 	ks bccsp.KeyStore
 
@@ -193,7 +193,7 @@ func (csp *CSP) Hash(msg []byte, opts bccsp.HashOpts) (digest []byte, err error)
 	return
 }
 
-// GetHash returns and instance of hash.Hash using options opts.
+// GetHash returns an instance of hash.Hash using options opts.
 // If opts is nil then the default hash function is returned.
 func (csp *CSP) GetHash(opts bccsp.HashOpts) (h hash.Hash, err error) {
 	// Validate arguments
@@ -243,7 +243,7 @@ func (csp *CSP) Sign(k bccsp.Key, digest []byte, opts bccsp.SignerOpts) (signatu
 	return
 }
 
-// Verify verifies signature against key k and digest
+// Verify verifies signature against key k and digest.
 func (csp *CSP) Verify(k bccsp.Key, signature, digest []byte, opts bccsp.SignerOpts) (valid bool, err error) {
 	// Validate arguments
 	if k == nil {
@@ -263,7 +263,7 @@ func (csp *CSP) Verify(k bccsp.Key, signature, digest []byte, opts bccsp.SignerO
 
 	valid, err = verifier.Verify(k, signature, digest, opts)
 	if err != nil {
-		return false, errors.Wrapf(err, "Failed verifing with opts [%v]", opts)
+		return false, errors.Wrapf(err, "failed verifying with opts [%v]", opts)
 	}
 
 	return
@@ -307,7 +307,7 @@ func (csp *CSP) Decrypt(k bccsp.Key, ciphertext []byte, opts bccsp.DecrypterOpts
 }
 
 // AddWrapper binds the passed type to the passed wrapper.
-// Notice that that wrapper must be an instance of one of the following interfaces:
+// Notice that the wrapper must be an instance of one of the following interfaces:
 // KeyGenerator, KeyDeriver, KeyImporter, Encryptor, Decryptor, Signer, Verifier, Hasher.
 func (csp *CSP) AddWrapper(t reflect.Type, w interface{}) error {
 	if t == nil {
@@ -334,7 +334,7 @@ func (csp *CSP) AddWrapper(t reflect.Type, w interface{}) error {
 	case Hasher:
 		csp.Hashers[t] = dt
 	default:
-		return errors.Errorf("wrapper type not valid, must be on of: KeyGenerator, KeyDeriver, KeyImporter, Encryptor, Decryptor, Signer, Verifier, Hasher")
+		return errors.Errorf("wrapper type not valid, must be one of: KeyGenerator, KeyDeriver, KeyImporter, Encryptor, Decryptor, Signer, Verifier, Hasher")
 	}
 	return nil
 }

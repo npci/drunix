@@ -252,13 +252,13 @@ func TestCBCPKCS7EncryptCBCDecrypt_ExpectingCorruptMessage(t *testing.T) {
 
 	decrypted, dErr := aesCBCDecrypt(key, encrypted)
 	if dErr != nil {
-		t.Fatalf("Error encrypting ptext %v, %v", dErr, decrypted)
+		t.Fatalf("Error decrypting ptext %v, %v", dErr, decrypted)
 	}
 
 	if string(ptext[:]) != string(decrypted[:aes.BlockSize]) {
 		t.Log("ptext: ", ptext)
 		t.Log("decrypted: ", decrypted[:aes.BlockSize])
-		t.Fatal("Encryption->Decryption with same key should result in original ptext")
+		t.Fatal("Encryption->Decryption with the same key should result in original ptext")
 	}
 
 	if !bytes.Equal(decrypted[aes.BlockSize:], bytes.Repeat([]byte{byte(aes.BlockSize)}, aes.BlockSize)) {
@@ -266,7 +266,7 @@ func TestCBCPKCS7EncryptCBCDecrypt_ExpectingCorruptMessage(t *testing.T) {
 	}
 }
 
-// TestCBCPKCS7Encrypt_EmptyPlaintext encrypts and pad an empty ptext. Verifying as well that the ciphertext length is as expected.
+// TestCBCPKCS7Encrypt_EmptyPlaintext encrypts and pads an empty ptext. Verifies as well that the ciphertext length is as expected.
 func TestCBCPKCS7Encrypt_EmptyPlaintext(t *testing.T) {
 	t.Parallel()
 
@@ -294,7 +294,7 @@ func TestCBCPKCS7Encrypt_EmptyPlaintext(t *testing.T) {
 	t.Log("Cipher: ", ciphertext)
 }
 
-// TestCBCEncrypt_EmptyPlaintext encrypts an empty message. Verifying as well that the ciphertext length is as expected.
+// TestCBCEncrypt_EmptyPlaintext encrypts an empty message. Verifies as well that the ciphertext length is as expected.
 func TestCBCEncrypt_EmptyPlaintext(t *testing.T) {
 	t.Parallel()
 
@@ -319,7 +319,7 @@ func TestCBCEncrypt_EmptyPlaintext(t *testing.T) {
 	t.Log("Ciphertext: ", ciphertext)
 }
 
-// TestCBCPKCS7Encrypt_VerifyRandomIVs encrypts twice with same key. The first 16 bytes should be different if IV is generated randomly.
+// TestCBCPKCS7Encrypt_VerifyRandomIVs encrypts twice with the same key. The first 16 bytes should be different if IV is generated randomly.
 func TestCBCPKCS7Encrypt_VerifyRandomIVs(t *testing.T) {
 	t.Parallel()
 
@@ -372,7 +372,7 @@ func TestCBCPKCS7Encrypt_CorrectCiphertextLengthCheck(t *testing.T) {
 
 		expectedLength := aes.BlockSize + aes.BlockSize
 		if len(ciphertext) != expectedLength {
-			t.Fatalf("Incorrect ciphertext incorrect: expected '%d', received '%d'", expectedLength, len(ciphertext))
+			t.Fatalf("Incorrect ciphertext: expected '%d', received '%d'", expectedLength, len(ciphertext))
 		}
 	}
 }
@@ -402,11 +402,11 @@ func TestCBCEncryptCBCDecrypt_KeyMismatch(t *testing.T) {
 	}
 
 	if string(ptext[:]) == string(decrypted[:]) {
-		t.Fatal("Decrypting a ciphertext with a different key than the one used for encrypting it - should not result in the original plaintext.")
+		t.Fatal("Decrypting a ciphertext with a different key than the one used to encrypt the plaintext - should not result in the original plaintext.")
 	}
 }
 
-// TestCBCEncryptCBCDecrypt encrypts with CBCEncrypt and decrypt with CBCDecrypt.
+// TestCBCEncryptCBCDecrypt encrypts with CBCEncrypt and decrypts with CBCDecrypt.
 func TestCBCEncryptCBCDecrypt(t *testing.T) {
 	t.Parallel()
 
@@ -427,11 +427,11 @@ func TestCBCEncryptCBCDecrypt(t *testing.T) {
 	}
 
 	if string(ptext[:]) != string(decrypted[:]) {
-		t.Fatal("Encryption->Decryption with same key should result in the original plaintext.")
+		t.Fatal("Encryption->Decryption with the same key should result in the original plaintext.")
 	}
 }
 
-// TestCBCEncryptWithRandCBCDecrypt encrypts with CBCEncrypt using the passed prng and decrypt with CBCDecrypt.
+// TestCBCEncryptWithRandCBCDecrypt encrypts with CBCEncrypt using the passed prng and decrypts with CBCDecrypt.
 func TestCBCEncryptWithRandCBCDecrypt(t *testing.T) {
 	t.Parallel()
 
@@ -452,11 +452,11 @@ func TestCBCEncryptWithRandCBCDecrypt(t *testing.T) {
 	}
 
 	if string(ptext[:]) != string(decrypted[:]) {
-		t.Fatal("Encryption->Decryption with same key should result in the original plaintext.")
+		t.Fatal("Encryption->Decryption with the same key should result in the original plaintext.")
 	}
 }
 
-// TestCBCEncryptWithIVCBCDecrypt encrypts with CBCEncrypt using the passed IV and decrypt with CBCDecrypt.
+// TestCBCEncryptWithIVCBCDecrypt encrypts with CBCEncrypt using the passed IV and decrypts with CBCDecrypt.
 func TestCBCEncryptWithIVCBCDecrypt(t *testing.T) {
 	t.Parallel()
 
@@ -481,7 +481,7 @@ func TestCBCEncryptWithIVCBCDecrypt(t *testing.T) {
 	}
 
 	if string(ptext[:]) != string(decrypted[:]) {
-		t.Fatal("Encryption->Decryption with same key should result in the original plaintext.")
+		t.Fatal("Encryption->Decryption with the same key should result in the original plaintext.")
 	}
 }
 
@@ -556,7 +556,7 @@ func TestVariousAESKeyEncoding(t *testing.T) {
 func TestPkcs7UnPaddingInvalidInputs(t *testing.T) {
 	t.Parallel()
 
-	_, err := pkcs7UnPadding([]byte{1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
+	_, err := pkcs7Unpadding([]byte{1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16})
 	require.Error(t, err)
 	require.Equal(t, "Invalid pkcs7 padding (pad[i] != unpadding)", err.Error())
 }
@@ -607,11 +607,11 @@ func TestAESCBCPKCS7EncryptorDecrypt(t *testing.T) {
 
 	_, err = encryptor.Encrypt(k, msg, &bccsp.AESCBCPKCS7ModeOpts{IV: []byte{1}})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Invalid IV. It must have length the block size")
+	require.Contains(t, err.Error(), "Invalid IV. It must have the length of the block size")
 
 	_, err = encryptor.Encrypt(k, msg, &bccsp.AESCBCPKCS7ModeOpts{IV: []byte{1}, PRNG: rand.Reader})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Invalid options. Either IV or PRNG should be different from nil, or both nil.")
+	require.Contains(t, err.Error(), "Invalid options. Specify either IV or PRNG, but not both.")
 
 	_, err = encryptor.Encrypt(k, msg, bccsp.AESCBCPKCS7ModeOpts{})
 	require.NoError(t, err)

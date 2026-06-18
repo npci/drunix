@@ -61,7 +61,7 @@ func TestVerifyECDSA(t *testing.T) {
 
 	_, err = verifyECDSA(&lowLevelKey.PublicKey, nil, msg, nil)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Failed unmashalling signature [")
+	require.Contains(t, err.Error(), "Failed unmarshalling signature [")
 
 	R, S, err := utils.UnmarshalECDSASignature(sigma)
 	require.NoError(t, err)
@@ -73,12 +73,12 @@ func TestVerifyECDSA(t *testing.T) {
 	require.Contains(t, err.Error(), "Invalid S. Must be smaller than half the order [")
 }
 
-func TestEcdsaSignerSign(t *testing.T) {
+func TestECDSASignerSign(t *testing.T) {
 	t.Parallel()
 
 	signer := &ecdsaSigner{}
 	verifierPrivateKey := &ecdsaPrivateKeyVerifier{}
-	verifierPublicKey := &ecdsaPublicKeyKeyVerifier{}
+	verifierPublicKey := &ecdsaPublicKeyVerifier{}
 
 	// Generate a key
 	lowLevelKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -107,7 +107,7 @@ func TestEcdsaSignerSign(t *testing.T) {
 	require.True(t, valid)
 }
 
-func TestEcdsaPrivateKey(t *testing.T) {
+func TestECDSAPrivateKey(t *testing.T) {
 	t.Parallel()
 
 	lowLevelKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -141,7 +141,7 @@ func TestEcdsaPrivateKey(t *testing.T) {
 	require.Equal(t, &lowLevelKey.PublicKey, ecdsaPK.pubKey)
 }
 
-func TestEcdsaPublicKey(t *testing.T) {
+func TestECDSAPublicKey(t *testing.T) {
 	t.Parallel()
 
 	lowLevelKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)

@@ -88,7 +88,7 @@ type Hasher interface {
 	// If opts is nil, the default hash function will be used.
 	Hash(msg []byte, opts bccsp.HashOpts) (hash []byte, err error)
 
-	// GetHash returns and instance of hash.Hash using options opts.
+	// GetHash returns an instance of hash.Hash using options opts.
 	// If opts is nil, the default hash function will be returned.
 	GetHash(opts bccsp.HashOpts) (h hash.Hash, err error)
 }

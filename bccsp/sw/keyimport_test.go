@@ -34,14 +34,14 @@ func TestKeyImport(t *testing.T) {
 
 	expectedRaw := []byte{1, 2, 3}
 	expectedOpts := &mocks2.KeyDerivOpts{EphemeralValue: true}
-	expectetValue := &mocks2.MockKey{BytesValue: []byte{1, 2, 3, 4, 5}}
+	expectedValue := &mocks2.MockKey{BytesValue: []byte{1, 2, 3, 4, 5}}
 	expectedErr := errors.New("Expected Error")
 
 	keyImporters := make(map[reflect.Type]KeyImporter)
 	keyImporters[reflect.TypeOf(&mocks2.KeyDerivOpts{})] = &mocks.KeyImporter{
 		RawArg:  expectedRaw,
 		OptsArg: expectedOpts,
-		Value:   expectetValue,
+		Value:   expectedValue,
 		Err:     expectedErr,
 	}
 	csp := CSP{KeyImporters: keyImporters}
@@ -53,12 +53,12 @@ func TestKeyImport(t *testing.T) {
 	keyImporters[reflect.TypeOf(&mocks2.KeyDerivOpts{})] = &mocks.KeyImporter{
 		RawArg:  expectedRaw,
 		OptsArg: expectedOpts,
-		Value:   expectetValue,
+		Value:   expectedValue,
 		Err:     nil,
 	}
 	csp = CSP{KeyImporters: keyImporters}
 	value, err = csp.KeyImport(expectedRaw, expectedOpts)
-	require.Equal(t, expectetValue, value)
+	require.Equal(t, expectedValue, value)
 	require.Nil(t, err)
 }
 
@@ -117,7 +117,7 @@ func TestECDSAPKIXPublicKeyImportOptsKeyImporter(t *testing.T) {
 
 	_, err = ki.KeyImport([]byte(nil), &mocks2.KeyImportOpts{})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Invalid raw. It must not be nil.")
+	require.Contains(t, err.Error(), "Invalid raw material. It must not be nil.")
 
 	_, err = ki.KeyImport([]byte{0}, &mocks2.KeyImportOpts{})
 	require.Error(t, err)
@@ -148,7 +148,7 @@ func TestECDSAPrivateKeyImportOptsKeyImporter(t *testing.T) {
 
 	_, err = ki.KeyImport([]byte(nil), &mocks2.KeyImportOpts{})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Invalid raw. It must not be nil.")
+	require.Contains(t, err.Error(), "Invalid raw material. It must not be nil.")
 
 	_, err = ki.KeyImport([]byte{0}, &mocks2.KeyImportOpts{})
 	require.Error(t, err)

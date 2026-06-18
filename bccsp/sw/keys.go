@@ -182,7 +182,7 @@ func pemToPrivateKey(raw []byte, pwd []byte) (interface{}, error) {
 
 	if x509.IsEncryptedPEMBlock(block) {
 		if len(pwd) == 0 {
-			return nil, errors.New("encrypted Key. Need a password")
+			return nil, errors.New("encrypted key. Need a password")
 		}
 
 		decrypted, err := x509.DecryptPEMBlock(block, pwd)
@@ -215,7 +215,7 @@ func pemToAES(raw []byte, pwd []byte) ([]byte, error) {
 
 	if x509.IsEncryptedPEMBlock(block) {
 		if len(pwd) == 0 {
-			return nil, errors.New("encrypted Key. Password must be different fom nil")
+			return nil, errors.New("encrypted key. Password must be different from nil")
 		}
 
 		decrypted, err := x509.DecryptPEMBlock(block, pwd)
@@ -323,7 +323,7 @@ func pemToPublicKey(raw []byte, pwd []byte) (interface{}, error) {
 	// TODO: derive from header the type of the key
 	if x509.IsEncryptedPEMBlock(block) {
 		if len(pwd) == 0 {
-			return nil, errors.New("encrypted Key. Password must be different from nil")
+			return nil, errors.New("encrypted key. Password must be different from nil")
 		}
 
 		decrypted, err := x509.DecryptPEMBlock(block, pwd)

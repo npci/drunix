@@ -18,7 +18,7 @@ package bccsp
 
 import "io"
 
-// AES128KeyGenOpts contains options for AES key generation at 128 security level
+// AES128KeyGenOpts contains options for AES key generation at the 128-bit security level
 type AES128KeyGenOpts struct {
 	Temporary bool
 }
@@ -34,7 +34,7 @@ func (opts *AES128KeyGenOpts) Ephemeral() bool {
 	return opts.Temporary
 }
 
-// AES192KeyGenOpts contains options for AES key generation at 192  security level
+// AES192KeyGenOpts contains options for AES key generation at 192 security level
 type AES192KeyGenOpts struct {
 	Temporary bool
 }
@@ -50,7 +50,7 @@ func (opts *AES192KeyGenOpts) Ephemeral() bool {
 	return opts.Temporary
 }
 
-// AES256KeyGenOpts contains options for AES key generation at 256 security level
+// AES256KeyGenOpts contains options for AES key generation at the 256-bit security level
 type AES256KeyGenOpts struct {
 	Temporary bool
 }
@@ -69,7 +69,7 @@ func (opts *AES256KeyGenOpts) Ephemeral() bool {
 // AESCBCPKCS7ModeOpts contains options for AES encryption in CBC mode
 // with PKCS7 padding.
 // Notice that both IV and PRNG can be nil. In that case, the BCCSP implementation
-// is supposed to sample the IV using a cryptographic secure PRNG.
+// is supposed to sample the IV using a cryptographically secure PRNG.
 // Notice also that either IV or PRNG can be different from nil.
 type AESCBCPKCS7ModeOpts struct {
 	// IV is the initialization vector to be used by the underlying cipher.

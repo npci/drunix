@@ -64,7 +64,7 @@ type Option func(p *Provider) error
 
 // WithKeyMapper returns an option that configures the Provider to use the
 // provided function to map a subject key identifier to a cryptoki CKA_ID
-// identifer.
+// identifier.
 func WithKeyMapper(mapper func([]byte) []byte) Option {
 	return func(p *Provider) error {
 		p.getKeyIDForSKI = mapper
@@ -78,7 +78,7 @@ func WithKeyMapper(mapper func([]byte) []byte) Option {
 //
 // All other cryptographic functions are delegated to a software based BCCSP
 // implementation that is configured to use the security level and hashing
-// familly from opts and the key store that is provided.
+// family from opts and the key store that is provided.
 func New(opts PKCS11Opts, keyStore bccsp.KeyStore, options ...Option) (*Provider, error) {
 	curve, err := curveForSecurityLevel(opts.Security)
 	if err != nil {
@@ -311,7 +311,7 @@ func (csp *Provider) Verify(k bccsp.Key, signature, digest []byte, opts bccsp.Si
 func (csp *Provider) verifyECDSA(k ecdsaPublicKey, signature, digest []byte) (bool, error) {
 	r, s, err := utils.UnmarshalECDSASignature(signature)
 	if err != nil {
-		return false, fmt.Errorf("Failed unmashalling signature [%s]", err)
+		return false, fmt.Errorf("Failed unmarshalling signature [%s]", err)
 	}
 
 	lowS, err := utils.IsLowS(k.pub, s)
@@ -562,7 +562,7 @@ func (csp *Provider) generateECKey(curve asn1.ObjectIdentifier, ephemeral bool) 
 		return nil, nil, fmt.Errorf("P11: set-ID-to-SKI[private] failed [%s]", err)
 	}
 
-	// Set CKA_Modifible to false for both public key and private keys
+	// Set CKA_Modifiable to false for both public key and private keys
 	if csp.immutable {
 		setCKAModifiable := []*pkcs11.Attribute{
 			pkcs11.NewAttribute(pkcs11.CKA_MODIFIABLE, false),
@@ -570,7 +570,7 @@ func (csp *Provider) generateECKey(curve asn1.ObjectIdentifier, ephemeral bool) 
 
 		_, pubCopyerror := csp.ctx.CopyObject(session, pub, setCKAModifiable)
 		if pubCopyerror != nil {
-			return nil, nil, fmt.Errorf("P11: Public Key copy failed with error [%s] . Please contact your HSM vendor", pubCopyerror)
+			return nil, nil, fmt.Errorf("P11: Public Key copy failed with error [%s]. Please contact your HSM vendor", pubCopyerror)
 		}
 
 		pubKeyDestroyError := csp.ctx.DestroyObject(session, pub)
@@ -590,7 +590,7 @@ func (csp *Provider) generateECKey(curve asn1.ObjectIdentifier, ephemeral bool) 
 
 	nistCurve := namedCurveFromOID(curve)
 	if curve == nil {
-		return nil, nil, fmt.Errorf("Cound not recognize Curve from OID")
+		return nil, nil, fmt.Errorf("Could not recognize Curve from OID")
 	}
 	x, y := elliptic.Unmarshal(nistCurve, ecpt)
 	if x == nil {
@@ -621,7 +621,7 @@ func (csp *Provider) signP11ECDSA(ski []byte, msg []byte) (R, S *big.Int, err er
 
 	err = csp.ctx.SignInit(session, []*pkcs11.Mechanism{pkcs11.NewMechanism(pkcs11.CKM_ECDSA, nil)}, privateKey)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Sign-initialize  failed [%s]", err)
+		return nil, nil, fmt.Errorf("Sign-initialize failed [%s]", err)
 	}
 
 	var sig []byte
@@ -864,7 +864,7 @@ func listAttrs(p11lib *pkcs11.Ctx, session pkcs11.SessionHandle, obj pkcs11.Obje
 	}
 
 	for _, a := range attr {
-		// Would be friendlier if the bindings provided a way convert Attribute hex to string
+		// Would be friendlier if the bindings provided a way to convert Attribute hex to string
 		logger.Debugf("ListAttr: type %d/0x%x, length %d\n%s", a.Type, a.Type, len(a.Value), hex.Dump(a.Value))
 	}
 }

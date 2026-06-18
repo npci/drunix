@@ -26,9 +26,9 @@ import (
 	"github.com/npci/drunix/bccsp"
 )
 
-type ecdsaPublicKeyKeyDeriver struct{}
+type ecdsaPublicKeyDeriver struct{}
 
-func (kd *ecdsaPublicKeyKeyDeriver) KeyDeriv(key bccsp.Key, opts bccsp.KeyDerivOpts) (bccsp.Key, error) {
+func (kd *ecdsaPublicKeyDeriver) KeyDeriv(key bccsp.Key, opts bccsp.KeyDerivOpts) (bccsp.Key, error) {
 	// Validate opts
 	if opts == nil {
 		return nil, errors.New("Invalid opts parameter. It must not be nil.")
@@ -36,7 +36,7 @@ func (kd *ecdsaPublicKeyKeyDeriver) KeyDeriv(key bccsp.Key, opts bccsp.KeyDerivO
 
 	ecdsaK := key.(*ecdsaPublicKey)
 
-	// Re-randomized an ECDSA private key
+	// Re-randomize an ECDSA private key
 	reRandOpts, ok := opts.(*bccsp.ECDSAReRandKeyOpts)
 	if !ok {
 		return nil, fmt.Errorf("Unsupported 'KeyDerivOpts' provided [%v]", opts)
@@ -70,9 +70,9 @@ func (kd *ecdsaPublicKeyKeyDeriver) KeyDeriv(key bccsp.Key, opts bccsp.KeyDerivO
 	return &ecdsaPublicKey{tempSK}, nil
 }
 
-type ecdsaPrivateKeyKeyDeriver struct{}
+type ecdsaPrivateKeyDeriver struct{}
 
-func (kd *ecdsaPrivateKeyKeyDeriver) KeyDeriv(key bccsp.Key, opts bccsp.KeyDerivOpts) (bccsp.Key, error) {
+func (kd *ecdsaPrivateKeyDeriver) KeyDeriv(key bccsp.Key, opts bccsp.KeyDerivOpts) (bccsp.Key, error) {
 	// Validate opts
 	if opts == nil {
 		return nil, errors.New("Invalid opts parameter. It must not be nil.")
@@ -80,7 +80,7 @@ func (kd *ecdsaPrivateKeyKeyDeriver) KeyDeriv(key bccsp.Key, opts bccsp.KeyDeriv
 
 	ecdsaK := key.(*ecdsaPrivateKey)
 
-	// Re-randomized an ECDSA private key
+	// Re-randomize an ECDSA private key
 	reRandOpts, ok := opts.(*bccsp.ECDSAReRandKeyOpts)
 	if !ok {
 		return nil, fmt.Errorf("Unsupported 'KeyDerivOpts' provided [%v]", opts)

@@ -22,7 +22,7 @@ type Key interface {
 	SKI() []byte
 
 	// Symmetric returns true if this key is a symmetric key,
-	// false is this key is asymmetric
+	// false if this key is asymmetric
 	Symmetric() bool
 
 	// Private returns true if this key is a private key,
@@ -108,7 +108,7 @@ type BCCSP interface {
 	// If opts is nil, the default hash function will be used.
 	Hash(msg []byte, opts HashOpts) (hash []byte, err error)
 
-	// GetHash returns and instance of hash.Hash using options opts.
+	// GetHash returns an instance of hash.Hash using options opts.
 	// If opts is nil, the default hash function will be returned.
 	GetHash(opts HashOpts) (h hash.Hash, err error)
 

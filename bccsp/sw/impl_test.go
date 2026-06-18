@@ -174,13 +174,13 @@ func TestKeyGenECDSAOpts(t *testing.T) {
 
 	ecdsaKey := k.(*ecdsaPrivateKey).privKey
 	if !elliptic.P256().IsOnCurve(ecdsaKey.X, ecdsaKey.Y) {
-		t.Fatal("P256 generated key in invalid. The public key must be on the P256 curve.")
+		t.Fatal("P256 generated key is invalid. The public key must be on the P256 curve.")
 	}
 	if elliptic.P256() != ecdsaKey.Curve {
-		t.Fatal("P256 generated key in invalid. The curve must be P256.")
+		t.Fatal("P256 generated key is invalid. The curve must be P256.")
 	}
 	if ecdsaKey.D.Cmp(big.NewInt(0)) == 0 {
-		t.Fatal("P256 generated key in invalid. Private key must be different from 0.")
+		t.Fatal("P256 generated key is invalid. Private key must be different from 0.")
 	}
 
 	// Curve P384
@@ -200,13 +200,13 @@ func TestKeyGenECDSAOpts(t *testing.T) {
 
 	ecdsaKey = k.(*ecdsaPrivateKey).privKey
 	if !elliptic.P384().IsOnCurve(ecdsaKey.X, ecdsaKey.Y) {
-		t.Fatal("P256 generated key in invalid. The public key must be on the P384 curve.")
+		t.Fatal("P384 generated key is invalid. The public key must be on the P384 curve.")
 	}
 	if elliptic.P384() != ecdsaKey.Curve {
-		t.Fatal("P256 generated key in invalid. The curve must be P384.")
+		t.Fatal("P384 generated key is invalid. The curve must be P384.")
 	}
 	if ecdsaKey.D.Cmp(big.NewInt(0)) == 0 {
-		t.Fatal("P256 generated key in invalid. Private key must be different from 0.")
+		t.Fatal("P384 generated key is invalid. Private key must be different from 0.")
 	}
 }
 
@@ -232,7 +232,7 @@ func TestKeyGenAESOpts(t *testing.T) {
 
 	aesKey := k.(*aesPrivateKey).privKey
 	if len(aesKey) != 16 {
-		t.Fatal("AES Key generated key in invalid. The key must have length 16.")
+		t.Fatal("AES generated key is invalid. The key must have length 16.")
 	}
 
 	// AES 192
@@ -252,7 +252,7 @@ func TestKeyGenAESOpts(t *testing.T) {
 
 	aesKey = k.(*aesPrivateKey).privKey
 	if len(aesKey) != 24 {
-		t.Fatal("AES Key generated key in invalid. The key must have length 16.")
+		t.Fatal("AES generated key is invalid. The key must have length 24.")
 	}
 
 	// AES 256
@@ -272,7 +272,7 @@ func TestKeyGenAESOpts(t *testing.T) {
 
 	aesKey = k.(*aesPrivateKey).privKey
 	if len(aesKey) != 32 {
-		t.Fatal("AES Key generated key in invalid. The key must have length 16.")
+		t.Fatal("AES generated key is invalid. The key must have length 32.")
 	}
 }
 
@@ -840,7 +840,7 @@ func TestKeyImportFromX509ECDSAPublicKey(t *testing.T) {
 		BasicConstraintsValid: true,
 		IsCA:                  true,
 
-		OCSPServer:            []string{"http://ocurrentBCCSP.example.com"},
+		OCSPServer:            []string{"http://currentBCCSP.example.com"},
 		IssuingCertificateURL: []string{"http://crt.example.com/ca1.crt"},
 
 		DNSNames:       []string{"test.example.com"},
@@ -862,7 +862,7 @@ func TestKeyImportFromX509ECDSAPublicKey(t *testing.T) {
 
 	cryptoSigner, err := signer.New(provider, k)
 	if err != nil {
-		t.Fatalf("Failed initializing CyrptoSigner [%s]", err)
+		t.Fatalf("Failed initializing CryptoSigner [%s]", err)
 	}
 
 	// Export the public key
@@ -966,7 +966,7 @@ func TestECDSALowS(t *testing.T) {
 	provider, _, cleanup := currentTestConfig.Provider(t)
 	defer cleanup()
 
-	// Ensure that signature with low-S are generated
+	// Ensure that signatures with low-S are generated
 	k, err := provider.KeyGen(&bccsp.ECDSAKeyGenOpts{Temporary: false})
 	if err != nil {
 		t.Fatalf("Failed generating ECDSA key [%s]", err)
@@ -1001,7 +1001,7 @@ func TestECDSALowS(t *testing.T) {
 		t.Fatal("Failed verifying ECDSA signature. Signature not valid.")
 	}
 
-	// Ensure that signature with high-S are rejected.
+	// Ensure that signatures with high-S are rejected.
 	var R *big.Int
 	for {
 		R, S, err = ecdsa.Sign(rand.Reader, k.(*ecdsaPrivateKey).privKey, digest)
@@ -1328,7 +1328,7 @@ func TestSHA(t *testing.T) {
 		h.Write(b)
 		h2 := h.Sum(nil)
 		if !bytes.Equal(h1, h2) {
-			t.Fatalf("Discrempancy found in HASH result [%x], [%x]!=[%x]", b, h1, h2)
+			t.Fatalf("Discrepancy found in HASH result [%x], [%x]!=[%x]", b, h1, h2)
 		}
 	}
 }
@@ -1362,5 +1362,5 @@ func TestAddWrapper(t *testing.T) {
 	// Add invalid wrapper
 	err := sw.AddWrapper(reflect.TypeOf(cleanup), cleanup)
 	require.Error(t, err)
-	require.Equal(t, err.Error(), "wrapper type not valid, must be on of: KeyGenerator, KeyDeriver, KeyImporter, Encryptor, Decryptor, Signer, Verifier, Hasher")
+	require.Equal(t, err.Error(), "wrapper type not valid, must be one of: KeyGenerator, KeyDeriver, KeyImporter, Encryptor, Decryptor, Signer, Verifier, Hasher")
 }

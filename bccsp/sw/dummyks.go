@@ -21,7 +21,7 @@ import (
 	"github.com/npci/drunix/bccsp"
 )
 
-// NewDummyKeyStore instantiate a dummy key store
+// NewDummyKeyStore instantiates a dummy key store
 // that neither loads nor stores keys
 func NewDummyKeyStore() bccsp.KeyStore {
 	return &dummyKeyStore{}

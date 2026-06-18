@@ -62,7 +62,7 @@ func (s *bccspCryptoSigner) Public() crypto.PublicKey {
 }
 
 // Sign signs digest with the private key, possibly using entropy from rand.
-// For an (EC)DSA key, it should be a DER-serialised, ASN.1 signature
+// For an (EC)DSA key, it should be a DER-serialized, ASN.1 signature
 // structure.
 //
 // Hash implements the SignerOpts interface and, in most cases, one can

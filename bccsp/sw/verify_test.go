@@ -30,37 +30,37 @@ func TestVerify(t *testing.T) {
 	t.Parallel()
 
 	expectedKey := &mocks2.MockKey{}
-	expectetSignature := []byte{1, 2, 3, 4, 5}
-	expectetDigest := []byte{1, 2, 3, 4}
+	expectedSignature := []byte{1, 2, 3, 4, 5}
+	expectedDigest := []byte{1, 2, 3, 4}
 	expectedOpts := &mocks2.SignerOpts{}
-	expectetValue := true
+	expectedValue := true
 	expectedErr := errors.New("Expected Error")
 
 	verifiers := make(map[reflect.Type]Verifier)
 	verifiers[reflect.TypeOf(&mocks2.MockKey{})] = &mocks.Verifier{
 		KeyArg:       expectedKey,
-		SignatureArg: expectetSignature,
-		DigestArg:    expectetDigest,
+		SignatureArg: expectedSignature,
+		DigestArg:    expectedDigest,
 		OptsArg:      expectedOpts,
-		Value:        expectetValue,
+		Value:        expectedValue,
 		Err:          nil,
 	}
 	csp := CSP{Verifiers: verifiers}
-	value, err := csp.Verify(expectedKey, expectetSignature, expectetDigest, expectedOpts)
-	require.Equal(t, expectetValue, value)
+	value, err := csp.Verify(expectedKey, expectedSignature, expectedDigest, expectedOpts)
+	require.Equal(t, expectedValue, value)
 	require.Nil(t, err)
 
 	verifiers = make(map[reflect.Type]Verifier)
 	verifiers[reflect.TypeOf(&mocks2.MockKey{})] = &mocks.Verifier{
 		KeyArg:       expectedKey,
-		SignatureArg: expectetSignature,
-		DigestArg:    expectetDigest,
+		SignatureArg: expectedSignature,
+		DigestArg:    expectedDigest,
 		OptsArg:      expectedOpts,
 		Value:        false,
 		Err:          expectedErr,
 	}
 	csp = CSP{Verifiers: verifiers}
-	value, err = csp.Verify(expectedKey, expectetSignature, expectetDigest, expectedOpts)
+	value, err = csp.Verify(expectedKey, expectedSignature, expectedDigest, expectedOpts)
 	require.False(t, value)
 	require.Contains(t, err.Error(), expectedErr.Error())
 }

@@ -28,7 +28,7 @@ func TestInvalidStoreKey(t *testing.T) {
 
 	ks, err := NewFileBasedKeyStore(nil, filepath.Join(tempDir, "bccspks"), false)
 	if err != nil {
-		t.Fatalf("Failed initiliazing KeyStore [%s]", err)
+		t.Fatalf("Failed initializing KeyStore [%s]", err)
 	}
 
 	err = ks.StoreKey(nil)
@@ -74,7 +74,7 @@ func TestBigKeyFile(t *testing.T) {
 	rawKey, err := privateKeyToPEM(privKey, nil)
 	require.NoError(t, err)
 
-	// Large padding array, of some values PEM parser will NOOP
+	// Large padding array of some values PEM parser will NOOP
 	bigBuff := make([]byte, 1<<17)
 	for i := range bigBuff {
 		bigBuff[i] = '\n'

@@ -9,7 +9,7 @@ package bccsp
 const (
 	// ECDSA Elliptic Curve Digital Signature Algorithm (key gen, import, sign, verify),
 	// at default security level.
-	// Each BCCSP may or may not support default security level. If not supported than
+	// Each BCCSP may or may not support default security level. If not supported then
 	// an error will be returned.
 	ECDSA = "ECDSA"
 
@@ -23,7 +23,7 @@ const (
 	ECDSAReRand = "ECDSA_RERAND"
 
 	// AES Advanced Encryption Standard at the default security level.
-	// Each BCCSP may or may not support default security level. If not supported than
+	// Each BCCSP may or may not support default security level. If not supported then
 	// an error will be returned.
 	AES = "AES"
 	// AES128 Advanced Encryption Standard at 128 bit security level
@@ -39,7 +39,7 @@ const (
 	HMACTruncated256 = "HMAC_TRUNCATED_256"
 
 	// SHA Secure Hash Algorithm using default family.
-	// Each BCCSP may or may not support default security level. If not supported than
+	// Each BCCSP may or may not support default security level. If not supported then
 	// an error will be returned.
 	SHA = "SHA"
 
@@ -77,7 +77,7 @@ func (opts *ECDSAKeyGenOpts) Ephemeral() bool {
 	return opts.Temporary
 }
 
-// ECDSAPKIXPublicKeyImportOpts contains options for ECDSA public key importation in PKIX format
+// ECDSAPKIXPublicKeyImportOpts contains options for ECDSA public key importation in PKIX format.
 type ECDSAPKIXPublicKeyImportOpts struct {
 	Temporary bool
 }
@@ -110,7 +110,7 @@ func (opts *ECDSAPrivateKeyImportOpts) Ephemeral() bool {
 	return opts.Temporary
 }
 
-// ECDSAGoPublicKeyImportOpts contains options for ECDSA key importation from ecdsa.PublicKey
+// ECDSAGoPublicKeyImportOpts contains options for ECDSA key importation from ecdsa.PublicKey.
 type ECDSAGoPublicKeyImportOpts struct {
 	Temporary bool
 }
@@ -143,12 +143,12 @@ func (opts *ECDSAReRandKeyOpts) Ephemeral() bool {
 	return opts.Temporary
 }
 
-// ExpansionValue returns the re-randomization factor
+// ExpansionValue returns the re-randomization factor.
 func (opts *ECDSAReRandKeyOpts) ExpansionValue() []byte {
 	return opts.Expansion
 }
 
-// AESKeyGenOpts contains options for AES key generation at default security level
+// AESKeyGenOpts contains options for AES key generation at default security level.
 type AESKeyGenOpts struct {
 	Temporary bool
 }
@@ -182,7 +182,7 @@ func (opts *HMACTruncated256AESDeriveKeyOpts) Ephemeral() bool {
 	return opts.Temporary
 }
 
-// Argument returns the argument to be passed to the HMAC
+// Argument returns the argument to be passed to the HMAC.
 func (opts *HMACTruncated256AESDeriveKeyOpts) Argument() []byte {
 	return opts.Arg
 }
@@ -204,7 +204,7 @@ func (opts *HMACDeriveKeyOpts) Ephemeral() bool {
 	return opts.Temporary
 }
 
-// Argument returns the argument to be passed to the HMAC
+// Argument returns the argument to be passed to the HMAC.
 func (opts *HMACDeriveKeyOpts) Argument() []byte {
 	return opts.Arg
 }
@@ -249,7 +249,7 @@ func (opts *SHAOpts) Algorithm() string {
 	return SHA
 }
 
-// X509PublicKeyImportOpts contains options for importing public keys from an x509 certificate
+// X509PublicKeyImportOpts contains options for importing public keys from an x509 certificate.
 type X509PublicKeyImportOpts struct {
 	Temporary bool
 }

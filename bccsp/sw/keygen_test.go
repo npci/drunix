@@ -21,13 +21,13 @@ func TestKeyGen(t *testing.T) {
 	t.Parallel()
 
 	expectedOpts := &mocks2.KeyGenOpts{EphemeralValue: true}
-	expectetValue := &mocks2.MockKey{}
+	expectedValue := &mocks2.MockKey{}
 	expectedErr := errors.New("Expected Error")
 
 	keyGenerators := make(map[reflect.Type]KeyGenerator)
 	keyGenerators[reflect.TypeOf(&mocks2.KeyGenOpts{})] = &mocks.KeyGenerator{
 		OptsArg: expectedOpts,
-		Value:   expectetValue,
+		Value:   expectedValue,
 		Err:     expectedErr,
 	}
 	csp := CSP{KeyGenerators: keyGenerators}
@@ -38,12 +38,12 @@ func TestKeyGen(t *testing.T) {
 	keyGenerators = make(map[reflect.Type]KeyGenerator)
 	keyGenerators[reflect.TypeOf(&mocks2.KeyGenOpts{})] = &mocks.KeyGenerator{
 		OptsArg: expectedOpts,
-		Value:   expectetValue,
+		Value:   expectedValue,
 		Err:     nil,
 	}
 	csp = CSP{KeyGenerators: keyGenerators}
 	value, err = csp.KeyGen(expectedOpts)
-	require.Equal(t, expectetValue, value)
+	require.Equal(t, expectedValue, value)
 	require.Nil(t, err)
 }
 

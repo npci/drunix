@@ -60,7 +60,7 @@ func (*ecdsaPKIXPublicKeyImportOptsKeyImporter) KeyImport(raw interface{}, opts 
 	}
 
 	if len(der) == 0 {
-		return nil, errors.New("Invalid raw. It must not be nil.")
+		return nil, errors.New("Invalid raw material. It must not be nil.")
 	}
 
 	lowLevelKey, err := derToPublicKey(der)
@@ -85,7 +85,7 @@ func (*ecdsaPrivateKeyImportOptsKeyImporter) KeyImport(raw interface{}, opts bcc
 	}
 
 	if len(der) == 0 {
-		return nil, errors.New("[ECDSADERPrivateKeyImportOpts] Invalid raw. It must not be nil.")
+		return nil, errors.New("[ECDSADERPrivateKeyImportOpts] Invalid raw material. It must not be nil.")
 	}
 
 	lowLevelKey, err := derToPrivateKey(der)

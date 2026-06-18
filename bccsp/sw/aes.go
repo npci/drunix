@@ -103,7 +103,7 @@ func aesCBCEncryptWithIV(IV []byte, key, s []byte) ([]byte, error) {
 	}
 
 	if len(IV) != aes.BlockSize {
-		return nil, errors.New("Invalid IV. It must have length the block size")
+		return nil, errors.New("Invalid IV. It must have the length of the block size")
 	}
 
 	block, err := aes.NewCipher(key)
@@ -152,7 +152,7 @@ func AESCBCPKCS7Encrypt(key, src []byte) ([]byte, error) {
 	return aesCBCEncrypt(key, tmp)
 }
 
-// AESCBCPKCS7Encrypt combines CBC encryption and PKCS7 padding using as prng the passed to the function
+// AESCBCPKCS7Encrypt combines CBC encryption and PKCS7 padding using the prng passed to the function
 func AESCBCPKCS7EncryptWithRand(prng io.Reader, key, src []byte) ([]byte, error) {
 	// First pad
 	tmp := pkcs7Padding(src)
@@ -161,7 +161,7 @@ func AESCBCPKCS7EncryptWithRand(prng io.Reader, key, src []byte) ([]byte, error)
 	return aesCBCEncryptWithRand(prng, key, tmp)
 }
 
-// AESCBCPKCS7Encrypt combines CBC encryption and PKCS7 padding, the IV used is the one passed to the function
+// AESCBCPKCS7Encrypt combines CBC encryption and PKCS7 padding. The IV used is the one passed to the function
 func AESCBCPKCS7EncryptWithIV(IV []byte, key, src []byte) ([]byte, error) {
 	// First pad
 	tmp := pkcs7Padding(src)
@@ -188,7 +188,7 @@ func (e *aescbcpkcs7Encryptor) Encrypt(k bccsp.Key, plaintext []byte, opts bccsp
 		// AES in CBC mode with PKCS7 padding
 
 		if len(o.IV) != 0 && o.PRNG != nil {
-			return nil, errors.New("Invalid options. Either IV or PRNG should be different from nil, or both nil.")
+			return nil, errors.New("Invalid options. Specify either IV or PRNG, but not both.")
 		}
 
 		if len(o.IV) != 0 {

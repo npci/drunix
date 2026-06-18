@@ -19,15 +19,15 @@ import (
 func TestUnmarshalECDSASignature(t *testing.T) {
 	_, _, err := UnmarshalECDSASignature(nil)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed unmashalling signature [")
+	require.Contains(t, err.Error(), "failed unmarshalling signature [")
 
 	_, _, err = UnmarshalECDSASignature([]byte{})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed unmashalling signature [")
+	require.Contains(t, err.Error(), "failed unmarshalling signature [")
 
 	_, _, err = UnmarshalECDSASignature([]byte{0})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed unmashalling signature [")
+	require.Contains(t, err.Error(), "failed unmarshalling signature [")
 
 	sigma, err := MarshalECDSASignature(big.NewInt(-1), big.NewInt(1))
 	require.NoError(t, err)
