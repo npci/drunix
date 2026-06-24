@@ -1,6 +1,6 @@
 /*
 Copyright National Payments Corporation of India. All Rights Reserved.
- 
+
 SPDX-License-Identifier: Apache-2.0
 */
 
@@ -82,7 +82,7 @@ func NewVsccValidateServer(ledgerConfig *ledger.Config, validationPluginsByName 
 		if vdbProvider, err = statecouchdb.NewVersionedDBProvider(ledgerConfig.StateDBConfig.CouchDB, metricsProvider, nil); err != nil {
 			return nil, err
 		}
-	} else if ledgerConfig.StateDBConfig.StateDatabase == ledger.SqlDB {
+	} else if ledgerConfig != nil && ledgerConfig.StateDBConfig.StateDatabase == ledger.SqlDB {
 		vdbProvider, err = statesqldb.NewVersionedDBProvider(ledgerConfig.StateDBConfig.SqlDB, nil, nil)
 		if err != nil {
 			return nil, err
@@ -179,8 +179,11 @@ func (v *VsccValidateServer) InitializeTxValidator(channelName string, blockNumb
 	if blockNumber == 0 {
 		versionedValue, err := versionDb.GetState("", "LAST_LIFECYCLE_BLOCK_NUMBER")
 		if err != nil {
-			v.logger.Errorf("failed to initilialize txValidator : %v", err)
-			return nil, status.Errorf(codes.Internal, "failed to initilialize txValidator")
+			v.logger.Errorf("failed to initialize txValidator : %v", err)
+			return nil, status.Errorf(codes.Internal, "failed to initialize txValidator")
+		}
+		if versionedValue == nil || versionedValue.Version == nil {
+			return nil, fmt.Errorf("LAST_LIFECYCLE_BLOCK_NUMBER not found in state DB for channel %s", channelName)
 		}
 		blockNumber = versionedValue.Version.BlockNum
 	}
@@ -358,6 +361,11 @@ func (v *VsccValidateServer) getValidator(req *pb.VsccRequest) (*txvalidator.TxV
 				v.logger.Errorf("failed to initilialize txValidator : %v", err)
 				return nil, status.Errorf(codes.Internal, "failed to initilialize txValidator")
 			}
+
+			if versionedValue == nil || versionedValue.Version == nil {
+				return nil, fmt.Errorf("LAST_LIFECYCLE_BLOCK_NUMBER not found in state DB for channel %s", req.ChannelId)
+			}
+
 			lastLifecycleBlockNumberInDB := versionedValue.Version.BlockNum
 
 			if channelValidator.lastLifecycleBlockNumber != lastLifecycleBlockNumberInDB {
