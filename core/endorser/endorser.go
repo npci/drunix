@@ -322,7 +322,7 @@ func (e *Endorser) ProcessProposal(ctx context.Context, signedProp *pb.SignedPro
 	}
 
 	// DRUNIX : do not install chaincode on committing-peer unless set explicitly using `CORE_PEER_INSTALLCCALLOWED=true`
-	isInstallCC := string(up.Input.Args[0]) == "InstallChaincode"
+	isInstallCC := len(up.Input.Args) > 0 && string(up.Input.Args[0]) == "InstallChaincode"
 	if isInstallCC && !viper.GetBool("peer.litepeer.enabled") && !viper.GetBool("peer.installccallowed") {
 		err := fmt.Errorf("Cannot install chaincode on committing-peer")
 		endorserLogger.Warn(err.Error())
