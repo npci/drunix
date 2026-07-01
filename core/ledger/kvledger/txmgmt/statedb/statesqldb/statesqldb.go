@@ -1,9 +1,8 @@
 /*
 Copyright National Payments Corporation of India. All Rights Reserved.
- 
+
 SPDX-License-Identifier: Apache-2.0
 */
-
 
 package statesqldb
 
@@ -243,6 +242,10 @@ func (db *versionedDB) ExecuteQueryWithPagination(namespace, query, bookmark str
 func (db *versionedDB) ApplyUpdates(batch *statedb.UpdateBatch, height *version.Height) error {
 	// DRUNIX : if litepeer enabled don't write to state database
 	if db.litePeerEnabled {
+		logger.Debugw("ApplyUpdates skipped: lite peer does not write to state database", "blockNum", height.BlockNum, "txNum", height.TxNum)
+		if db.metrics != nil {
+			db.metrics.DBCallSql.With("method_name", "ApplyUpdates", "call_type", "LitePeerSkip", "status", "skip").Add(1)
+		}
 		return nil
 	}
 	isLifecycleUpdate := false

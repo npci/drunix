@@ -1,0 +1,8 @@
+# Skip claude
+.claude*
+CLAUDE.md
+
+# Skip Intellij
+.idea/
+*.iml
+*.iws
