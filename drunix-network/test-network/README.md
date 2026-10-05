@@ -20,6 +20,12 @@ Default values are defined in `network.config`. By default, the script uses:
 
 ## Network commands
 
+To generate binaries use:
+Run the below command from the ROOTDIR inside drunix
+```bash
+make peer orderer configtxgen configtxlator osnadmin cryptogen discover ledgerutil
+```
+
 To create a network use:
 
 ```bash
@@ -75,7 +81,7 @@ The following flags are supported by `up` and `createChannel`:
 Example:
 
 ```bash
-./network.sh up createChannel -c mychannel -ca -r 5 -d 3 -s yugabyte
+./network.sh up createChannel -c mychannel  -s yugabyte
 ```
 
 ## Deploying chaincode
@@ -160,19 +166,14 @@ Use the same collection config file while deploying chaincode with -cccg
 
 ## Chaincode lifecycle and invoke/query commands
 
-The `cc` mode supports packaging, listing, invoking, and querying chaincode.
 
-Package chaincode:
-
-```bash
-./network.sh cc package -ccn basic -ccp ../asset-transfer-basic/chaincode-go -ccv 1.0 -ccl go
-```
-
-List installed and committed chaincodes:
+Deploy chaincode:
 
 ```bash
-./network.sh cc list -org 1
+./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-go/ -ccv 1.0 -ccl go 
 ```
+
+
 
 Invoke chaincode:
 
