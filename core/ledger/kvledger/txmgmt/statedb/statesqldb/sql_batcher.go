@@ -1,13 +1,15 @@
 /*
 Copyright National Payments Corporation of India. All Rights Reserved.
- 
+
 SPDX-License-Identifier: Apache-2.0
 */
 
 package statesqldb
 
 import (
+	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/npci/drunix/consts"
@@ -27,17 +29,25 @@ type ResponseChan struct {
 
 type SqlBatcher interface {
 	Get(key string) (DBValue, error)
+	Close()
 }
 
 type sqlBatcher struct {
-	channel chan map[string]chan ResponseChan
-	batch   map[string]chan ResponseChan
+	channel    chan map[string]chan ResponseChan
+	batch      map[string]chan ResponseChan
+	doneCh     chan struct{}
+	closeOnce  sync.Once
+	mux        sync.RWMutex
+	closed     bool
+	listenerWG sync.WaitGroup
+	flushWG    sync.WaitGroup
 	*sqlSchema
 }
 
 var (
-	channelBufferSize = consts.ENDORSER_BATCH_CHANNEL_BUFFER
-	batchInterval     = time.Duration(consts.ENDORSER_BATCH_INTERVAL) * time.Millisecond
+	channelBufferSize   = consts.ENDORSER_BATCH_CHANNEL_BUFFER
+	batchInterval       = time.Duration(consts.ENDORSER_BATCH_INTERVAL) * time.Millisecond
+	errSqlBatcherClosed = errors.New("sql batcher is closed")
 )
 
 // DRUNIX: initialize sql batcher with the pre-defined buffer size and start the batch listener in a go routine
@@ -48,9 +58,11 @@ func NewSqlBatcher(sqlSchema *sqlSchema) SqlBatcher {
 	sb := &sqlBatcher{
 		channel:   make(chan map[string]chan ResponseChan, channelBufferSize),
 		batch:     make(map[string]chan ResponseChan, 0),
+		doneCh:    make(chan struct{}),
 		sqlSchema: sqlSchema,
 	}
 
+	sb.listenerWG.Add(1)
 	go sb.startBatchListener()
 
 	return sb
@@ -64,25 +76,79 @@ func (sb *sqlBatcher) Get(key string) (DBValue, error) {
 
 	responseChan := make(chan ResponseChan, 1)
 
+	sb.mux.RLock()
+	if sb.closed {
+		sb.mux.RUnlock()
+		return DBValue{}, errSqlBatcherClosed
+	}
+
 	select {
 	case sb.channel <- map[string]chan ResponseChan{key: responseChan}:
-		response := <-responseChan
-		close(responseChan)
-		return response.Value, response.Error
+		sb.mux.RUnlock()
+	case <-sb.doneCh:
+		sb.mux.RUnlock()
+		return DBValue{}, errSqlBatcherClosed
 	default:
+		sb.mux.RUnlock()
 		return DBValue{}, fmt.Errorf("failed to queue key-value pair : %s", key)
+	}
+
+	select {
+	case response := <-responseChan:
+		return response.Value, response.Error
+	case <-sb.doneCh:
+		return DBValue{}, errSqlBatcherClosed
+	}
+}
+
+func (sb *sqlBatcher) Close() {
+	sb.closeOnce.Do(func() {
+		sb.mux.Lock()
+		sb.closed = true
+		close(sb.doneCh)
+		sb.mux.Unlock()
+	})
+
+	sb.listenerWG.Wait()
+	sb.flushWG.Wait()
+}
+
+func (sb *sqlBatcher) failPending() {
+	for _, responseChan := range sb.batch {
+		select {
+		case responseChan <- ResponseChan{Error: errSqlBatcherClosed}:
+		default:
+		}
+	}
+	sb.batch = make(map[string]chan ResponseChan)
+
+	for {
+		select {
+		case pending := <-sb.channel:
+			for _, responseChan := range pending {
+				select {
+				case responseChan <- ResponseChan{Error: errSqlBatcherClosed}:
+				default:
+				}
+			}
+		default:
+			return
+		}
 	}
 }
 
 // DRUNIX: listen infintely on the batch channel and store then keys and the relevant response channel in a map. After the specified time interval the data in the batch map is dumped to a flush map and process that flush map
 func (sb *sqlBatcher) startBatchListener() {
+	defer sb.listenerWG.Done()
 
 	ticker := time.NewTicker(batchInterval)
-
 	defer ticker.Stop()
 
 	for {
 		select {
+		case <-sb.doneCh:
+			sb.failPending()
+			return
 		case kv := <-sb.channel:
 			for key, value := range kv {
 				sb.batch[key] = value
@@ -94,12 +160,15 @@ func (sb *sqlBatcher) startBatchListener() {
 				for key, responseChan := range sb.batch {
 					batchToFlush[key] = responseChan
 				}
-				go sb.flushBatchToSql(batchToFlush)
-				sb.batch = make(map[string]chan ResponseChan, 0)
+				sb.batch = make(map[string]chan ResponseChan)
+				sb.flushWG.Add(1)
+				go func() {
+					defer sb.flushWG.Done()
+					sb.flushBatchToSql(batchToFlush)
+				}()
 			}
 		}
 	}
-
 }
 
 // DRUNIX: get the keys from the flush map and get the relevant table. Scan the keys and retrieve values and send them in the response channel
