@@ -350,10 +350,8 @@ func (s *KVStore) PrivateDataHGetAllBatch(keys map[string]string) (map[string]ma
 		cmds[idx] = pipe.HGetAll(ctx, idx)
 	}
 	_, err := pipe.Exec(ctx)
-	if err != nil && err == redis.Nil {
-		logger.Errorf("error in retreiving PrivateDataHGetAllBatch value bytes : %+v", err)
-	} else if err != nil {
-		logger.Errorf("error executing PrivateDataHGetAllBatch pipeline :%v", err)
+	if err != nil && !errors.Is(err, redis.Nil) {
+		logger.Errorf("error executing PrivateDataHGetAllBatch pipeline: %v", err)
 		return nil, err
 	}
 
