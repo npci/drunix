@@ -83,7 +83,7 @@ func NewVsccValidateServer(ledgerConfig *ledger.Config, validationPluginsByName 
 			return nil, err
 		}
 	} else if ledgerConfig.StateDBConfig.StateDatabase == ledger.SqlDB {
-		vdbProvider, err = statesqldb.NewVersionedDBProvider(ledgerConfig.StateDBConfig.SqlDB, nil, nil)
+		vdbProvider, err = statesqldb.NewVersionedDBProvider(ledgerConfig.StateDBConfig.SqlDB, metricsProvider, nil)
 		if err != nil {
 			return nil, err
 		}

@@ -292,12 +292,16 @@ func (db *versionedDB) ApplyUpdates(batch *statedb.UpdateBatch, height *version.
 			startTime := time.Now()
 			err := db.sqlSchema.Set(updateData)
 			if err != nil {
-				db.metrics.DBCallSql.With("method_name", "ApplyUpdates", "call_type", "Set", "status", "fail").Add(1)
-				db.metrics.DBCallTimeSQL.With("method_name", "ApplyUpdates", "call_type", "Set", "status", "fail").Observe(time.Since(startTime).Seconds())
+				if db.metrics != nil {
+					db.metrics.DBCallSql.With("method_name", "ApplyUpdates", "call_type", "Set", "status", "fail").Add(1)
+					db.metrics.DBCallTimeSQL.With("method_name", "ApplyUpdates", "call_type", "Set", "status", "fail").Observe(time.Since(startTime).Seconds())
+				}
 				logger.Errorf("Error in batch sql write. err:%+v", err)
 			}
-			db.metrics.DBCallSql.With("method_name", "ApplyUpdates", "call_type", "Set", "status", "success").Add(1)
-			db.metrics.DBCallTimeSQL.With("method_name", "ApplyUpdates", "call_type", "Set", "status", "success").Observe(time.Since(startTime).Seconds())
+			if db.metrics != nil {
+				db.metrics.DBCallSql.With("method_name", "ApplyUpdates", "call_type", "Set", "status", "success").Add(1)
+				db.metrics.DBCallTimeSQL.With("method_name", "ApplyUpdates", "call_type", "Set", "status", "success").Observe(time.Since(startTime).Seconds())
+			}
 			errChan <- err
 			wg.Done()
 		}()
@@ -309,12 +313,16 @@ func (db *versionedDB) ApplyUpdates(batch *statedb.UpdateBatch, height *version.
 			startTime := time.Now()
 			err := db.sqlSchema.Delete(deleteData)
 			if err != nil {
-				db.metrics.DBCallSql.With("method_name", "ApplyUpdates", "call_type", "Delete", "status", "fail").Add(1)
-				db.metrics.DBCallTimeSQL.With("method_name", "ApplyUpdates", "call_type", "Delete", "status", "fail").Observe(time.Since(startTime).Seconds())
+				if db.metrics != nil {
+					db.metrics.DBCallSql.With("method_name", "ApplyUpdates", "call_type", "Delete", "status", "fail").Add(1)
+					db.metrics.DBCallTimeSQL.With("method_name", "ApplyUpdates", "call_type", "Delete", "status", "fail").Observe(time.Since(startTime).Seconds())
+				}
 				logger.Errorf("Error in batch sql delete. err:%+v", err)
 			}
-			db.metrics.DBCallSql.With("method_name", "ApplyUpdates", "call_type", "Delete", "status", "success").Add(1)
-			db.metrics.DBCallTimeSQL.With("method_name", "ApplyUpdates", "call_type", "Delete", "status", "success").Observe(time.Since(startTime).Seconds())
+			if db.metrics != nil {
+				db.metrics.DBCallSql.With("method_name", "ApplyUpdates", "call_type", "Delete", "status", "success").Add(1)
+				db.metrics.DBCallTimeSQL.With("method_name", "ApplyUpdates", "call_type", "Delete", "status", "success").Observe(time.Since(startTime).Seconds())
+			}
 			errChan <- err
 			wg.Done()
 		}()
@@ -365,12 +373,16 @@ func (db *versionedDB) GetLatestSavePoint() (*version.Height, error) {
 	startTime := time.Now()
 	versionedValue, err := db.sqlSchema.Get(savePointKey)
 	if err != nil {
-		db.metrics.DBCallSql.With("method_name", "GetLatestSavePoint", "call_type", "GetLifecycleKeys", "status", "fail").Add(1)
-		db.metrics.DBCallTimeSQL.With("method_name", "GetLatestSavePoint", "call_type", "GetLifecycleKeys", "status", "fail").Observe(time.Since(startTime).Seconds())
+		if db.metrics != nil {
+			db.metrics.DBCallSql.With("method_name", "GetLatestSavePoint", "call_type", "GetLifecycleKeys", "status", "fail").Add(1)
+			db.metrics.DBCallTimeSQL.With("method_name", "GetLatestSavePoint", "call_type", "GetLifecycleKeys", "status", "fail").Observe(time.Since(startTime).Seconds())
+		}
 		return nil, err
 	}
-	db.metrics.DBCallSql.With("method_name", "GetLatestSavePoint", "call_type", "GetLifecycleKeys", "status", "success").Add(1)
-	db.metrics.DBCallTimeSQL.With("method_name", "GetLatestSavePoint", "call_type", "GetLifecycleKeys", "status", "success").Observe(time.Since(startTime).Seconds())
+	if db.metrics != nil {
+		db.metrics.DBCallSql.With("method_name", "GetLatestSavePoint", "call_type", "GetLifecycleKeys", "status", "success").Add(1)
+		db.metrics.DBCallTimeSQL.With("method_name", "GetLatestSavePoint", "call_type", "GetLifecycleKeys", "status", "success").Observe(time.Since(startTime).Seconds())
+	}
 	if versionedValue == nil {
 		return nil, nil
 	}
