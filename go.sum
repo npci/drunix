@@ -2624,6 +2624,8 @@ git.sr.ht/~sbinet/gg v0.3.1/go.mod h1:KGYtlADtqsqANL9ueOFkWymvzUvLMQllU5Ixo+8v3p
 git.sr.ht/~sbinet/gg v0.5.0/go.mod h1:G2C0eRESqlKhS7ErsNey6HHrqU1PwsnCQlekFi9Q2Oo=
 git.sr.ht/~sbinet/gg v0.6.0/go.mod h1:uucygbfC9wVPQIfrmwM2et0imr8L7KQWywX0xpFMm94=
 git.wow.st/gmp/jni v0.0.0-20210610011705-34026c7e22d0/go.mod h1:+axXBRUTIDlCeE73IKeD/os7LoEnTKdkp8/gQOFjqyo=
+github.com/Azure/go-amqp v1.7.0 h1:9VlH/LEWr386XWWJRNON0eslFqSClYBXP4HewvIqkDQ=
+github.com/Azure/go-amqp v1.7.0/go.mod h1:pCJaHsvRlmmFUpxyQbh2qPkUFqYJeRBTqJSHKJadvPg=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/DataDog/zstd v1.5.6 h1:LbEglqepa/ipmmQJUDnSsfvA8e8IStVcGaFWDuxvGOY=
