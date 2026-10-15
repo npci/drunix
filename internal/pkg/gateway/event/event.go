@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 package event
 
 import (
+	"github.com/npci/drunix/internal/pkg/gateway/event/amqp"
 	"github.com/npci/drunix/internal/pkg/gateway/event/kafka"
 
 	"github.com/npci/drunix/internal/pkg/gateway/event/publisher"
@@ -30,6 +31,8 @@ func NewPublisher(config publisher.Config) (publisher.Publisher, error) {
 
 	case publisher.KAFKA:
 		return kafka.NewKafkaPublisher(config)
+	case publisher.AMQP:
+		return amqp.NewAMQPPublisher(config)
 	case publisher.GRPC:
 		return nil, errors.Errorf("event publisher server type `GRPC` is not implemented yet")
 	case publisher.UNIMPLEMENTED:

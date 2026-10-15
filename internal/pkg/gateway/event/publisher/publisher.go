@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 package publisher
 
 import (
+	"fmt"
 	"runtime"
 	"strings"
 
@@ -21,6 +22,7 @@ const (
 	NATS
 	KAFKA
 	GRPC
+	AMQP
 )
 
 /*
@@ -43,6 +45,7 @@ Members:
   - ClientCertificate: path to the client certificate
   - ClientPrivateKey: path to the client private key
   - CACertificates: list of paths to CA certificates
+  - AMQP: settings used only by the AMQP 1.0 event server
 */
 type Config struct {
 	// OrgType           chaincode.OrgType
@@ -56,6 +59,56 @@ type Config struct {
 	PeerEndpoint      string
 	ShardEnabled      bool
 	WorkerPoolSize    int
+	AMQP              AMQPConfig
+}
+
+/*
+AMQPConfig:
+Type: Struct
+
+AMQPConfig is the configuration specific to the AMQP 1.0 event server
+Members:
+  - NetworkID: logical network name, used as a level of the event address
+  - AddressPrefix: prefix prepended to every event address
+  - TopicSeparator: separator between the levels of the event address
+  - SASLMechanism: SASL mechanism used to authenticate (anonymous, plain or external)
+  - Username: username for the plain SASL mechanism
+  - Password: password for the plain SASL mechanism
+  - OnUndeliverable: action when the server does not accept an event (block or skip)
+*/
+type AMQPConfig struct {
+	NetworkID       string
+	AddressPrefix   string
+	TopicSeparator  string
+	SASLMechanism   string
+	Username        string
+	Password        string
+	OnUndeliverable string
+}
+
+/*
+String:
+Type: Method
+
+String returns the AMQP configuration with the password masked, so that it can be logged safely.
+*/
+func (c AMQPConfig) String() string {
+	password := ""
+	if c.Password != "" {
+		password = "****"
+	}
+	return fmt.Sprintf("{NetworkID:%s AddressPrefix:%s TopicSeparator:%s SASLMechanism:%s Username:%s Password:%s OnUndeliverable:%s}",
+		c.NetworkID, c.AddressPrefix, c.TopicSeparator, c.SASLMechanism, c.Username, password, c.OnUndeliverable)
+}
+
+/*
+GoString:
+Type: Method
+
+GoString returns the masked AMQP configuration for the %#v format verb.
+*/
+func (c AMQPConfig) GoString() string {
+	return c.String()
 }
 
 func LoadConfig() Config {
@@ -70,6 +123,8 @@ func LoadConfig() Config {
 		config.ServerType = KAFKA
 	case "grpc":
 		config.ServerType = GRPC
+	case "amqp":
+		config.ServerType = AMQP
 	default:
 		config.ServerType = UNIMPLEMENTED
 		// skip reading other config if serverType is not set
@@ -88,6 +143,18 @@ func LoadConfig() Config {
 	config.WorkerPoolSize = viper.GetInt("peer.chaincode.eventpublisher.workerpoolsize")
 	if config.WorkerPoolSize == 0 {
 		config.WorkerPoolSize = runtime.NumCPU() * 4
+	}
+
+	if config.ServerType == AMQP {
+		config.AMQP = AMQPConfig{
+			NetworkID:       viper.GetString("peer.networkId"),
+			AddressPrefix:   viper.GetString("peer.chaincode.eventpublisher.amqp.addressPrefix"),
+			TopicSeparator:  viper.GetString("peer.chaincode.eventpublisher.amqp.topicSeparator"),
+			SASLMechanism:   viper.GetString("peer.chaincode.eventpublisher.amqp.saslMechanism"),
+			Username:        viper.GetString("peer.chaincode.eventpublisher.amqp.username"),
+			Password:        viper.GetString("peer.chaincode.eventpublisher.amqp.password"),
+			OnUndeliverable: viper.GetString("peer.chaincode.eventpublisher.amqp.onUndeliverable"),
+		}
 	}
 
 	// config.Hosts = []string{"192.168.0.105:9092"}
