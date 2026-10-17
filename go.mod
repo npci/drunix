@@ -4,6 +4,7 @@ go 1.26.1
 
 require (
 	code.cloudfoundry.org/clock v1.41.0
+	github.com/Azure/go-amqp v1.7.0
 	// github.com/IBM/idemix v0.0.2-0.20240913182345-72941a5f41cd
 	github.com/IBM/sarama v1.45.2
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible

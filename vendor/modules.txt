@@ -6,6 +6,16 @@ code.cloudfoundry.org/clock/fakeclock
 ## explicit; go 1.20
 filippo.io/edwards25519
 filippo.io/edwards25519/field
+# github.com/Azure/go-amqp v1.7.0
+## explicit; go 1.25
+github.com/Azure/go-amqp
+github.com/Azure/go-amqp/internal/bitmap
+github.com/Azure/go-amqp/internal/buffer
+github.com/Azure/go-amqp/internal/debug
+github.com/Azure/go-amqp/internal/encoding
+github.com/Azure/go-amqp/internal/frames
+github.com/Azure/go-amqp/internal/queue
+github.com/Azure/go-amqp/internal/shared
 # github.com/DataDog/zstd v1.5.6
 ## explicit; go 1.14
 github.com/DataDog/zstd
