@@ -295,9 +295,10 @@ func (db *versionedDB) ApplyUpdates(batch *statedb.UpdateBatch, height *version.
 				db.metrics.DBCallSql.With("method_name", "ApplyUpdates", "call_type", "Set", "status", "fail").Add(1)
 				db.metrics.DBCallTimeSQL.With("method_name", "ApplyUpdates", "call_type", "Set", "status", "fail").Observe(time.Since(startTime).Seconds())
 				logger.Errorf("Error in batch sql write. err:%+v", err)
+			} else {
+				db.metrics.DBCallSql.With("method_name", "ApplyUpdates", "call_type", "Set", "status", "success").Add(1)
+				db.metrics.DBCallTimeSQL.With("method_name", "ApplyUpdates", "call_type", "Set", "status", "success").Observe(time.Since(startTime).Seconds())
 			}
-			db.metrics.DBCallSql.With("method_name", "ApplyUpdates", "call_type", "Set", "status", "success").Add(1)
-			db.metrics.DBCallTimeSQL.With("method_name", "ApplyUpdates", "call_type", "Set", "status", "success").Observe(time.Since(startTime).Seconds())
 			errChan <- err
 			wg.Done()
 		}()
@@ -312,9 +313,10 @@ func (db *versionedDB) ApplyUpdates(batch *statedb.UpdateBatch, height *version.
 				db.metrics.DBCallSql.With("method_name", "ApplyUpdates", "call_type", "Delete", "status", "fail").Add(1)
 				db.metrics.DBCallTimeSQL.With("method_name", "ApplyUpdates", "call_type", "Delete", "status", "fail").Observe(time.Since(startTime).Seconds())
 				logger.Errorf("Error in batch sql delete. err:%+v", err)
+			} else {
+				db.metrics.DBCallSql.With("method_name", "ApplyUpdates", "call_type", "Delete", "status", "success").Add(1)
+				db.metrics.DBCallTimeSQL.With("method_name", "ApplyUpdates", "call_type", "Delete", "status", "success").Observe(time.Since(startTime).Seconds())
 			}
-			db.metrics.DBCallSql.With("method_name", "ApplyUpdates", "call_type", "Delete", "status", "success").Add(1)
-			db.metrics.DBCallTimeSQL.With("method_name", "ApplyUpdates", "call_type", "Delete", "status", "success").Observe(time.Since(startTime).Seconds())
 			errChan <- err
 			wg.Done()
 		}()
