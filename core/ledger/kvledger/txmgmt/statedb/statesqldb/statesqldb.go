@@ -1,9 +1,8 @@
 /*
 Copyright National Payments Corporation of India. All Rights Reserved.
- 
+
 SPDX-License-Identifier: Apache-2.0
 */
-
 
 package statesqldb
 
@@ -42,6 +41,9 @@ func NewVersionedDBProvider(config *ledger.SqlDbConfig, metricsProvider metrics.
 
 	keyValueDBConn, err := keyvaluedatabase.GetKeyValueDBConnection()
 	if err != nil {
+		if closeErr := sqlClient.Close(); closeErr != nil {
+			logger.Errorf("failed to close SQL DB provider after KeyDB initialization error: %v", closeErr)
+		}
 		return nil, err
 	}
 
@@ -63,6 +65,7 @@ type VersionedDBProvider struct {
 	sqlClient SqlClient
 	databases map[string]*versionedDB
 	mux       sync.Mutex
+	closeOnce sync.Once
 	metrics   metrics.Provider
 }
 
@@ -131,6 +134,7 @@ func (provider *VersionedDBProvider) ImportFromSnapshot(
 	if err != nil {
 		return err
 	}
+	defer db.Close()
 
 	data := make(map[string]*statedb.VersionedValue)
 	for {
@@ -165,10 +169,21 @@ func (provider *VersionedDBProvider) BytesKeySupported() bool {
 	return false
 }
 
-/*
-DRUNIX: This function is there to satisfy the interface method impl
-*/
-func (provider *VersionedDBProvider) Close() {}
+func (provider *VersionedDBProvider) Close() {
+	provider.closeOnce.Do(func() {
+		provider.mux.Lock()
+		defer provider.mux.Unlock()
+
+		for _, db := range provider.databases {
+			db.Close()
+		}
+
+		if err := provider.sqlClient.Close(); err != nil {
+			logger.Errorf("failed to close SQL DB provider: %v", err)
+		}
+	})
+}
+
 func (provider *VersionedDBProvider) Drop(dbName string) error {
 	return nil
 }
@@ -416,10 +431,11 @@ DRUNIX: This function is there to satisfy the interface method impl
 */
 func (db *versionedDB) Open() error { return nil }
 
-/*
-DRUNIX: This function is there to satisfy the interface method impl
-*/
-func (db *versionedDB) Close() {}
+func (db *versionedDB) Close() {
+	if err := db.sqlSchema.Close(); err != nil {
+		logger.Errorf("failed to close SQL schema for channel %s: %v", db.chainName, err)
+	}
+}
 
 func (db *versionedDB) IsLifecycleKeys(namespace string) bool {
 	nss := strings.Split(namespace, "$$")

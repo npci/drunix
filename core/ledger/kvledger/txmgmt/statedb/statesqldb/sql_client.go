@@ -1,6 +1,6 @@
 /*
 Copyright National Payments Corporation of India. All Rights Reserved.
- 
+
 SPDX-License-Identifier: Apache-2.0
 */
 
@@ -51,6 +51,7 @@ type sqlSchema struct {
 
 type SqlClient interface {
 	NewSchema(schema string, peerid string, litePeerEnabled bool) (SqlSchema, error)
+	Close() error
 }
 
 type SqlSchema interface {
@@ -401,15 +402,17 @@ func newSqlClient(config *ledger.SqlDbConfig) (SqlClient, error) {
 	}, nil
 }
 
-func (sql *sqlSchema) Close() error {
-
-	sqlDb, err := sql.Client.DB()
+func (sql *sqlClient) Close() error {
+	sqlDB, err := sql.Client.DB()
 	if err != nil {
 		return err
 	}
-	err = sqlDb.Close()
-	if err != nil {
-		return err
+	return sqlDB.Close()
+}
+
+func (sql *sqlSchema) Close() error {
+	if sql.SqlBatcher != nil {
+		sql.SqlBatcher.Close()
 	}
 	return nil
 }
